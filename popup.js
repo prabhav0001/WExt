@@ -1,6 +1,6 @@
-// popup.js - v3.2 (History Download + Auto Save Settings) ✨
+// popup.js - FINAL BOLD FIX (Multiline Support) 🛠️✅
 
-// --- 0. AUTO LOAD SAVED SETTINGS (NEW) ---
+// --- 0. AUTO LOAD SETTINGS ---
 document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.local.get(['savedMinGap', 'savedMaxGap'], (data) => {
         if(data.savedMinGap) document.getElementById('min-gap').value = data.savedMinGap;
@@ -8,14 +8,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Save settings whenever changed
 document.getElementById('min-gap').addEventListener('change', (e) => {
-    chrome.storage.local.set({ savedMinGap: e.target.value });
+    let val = parseInt(e.target.value);
+    if(val < 1) val = 1;
+    chrome.storage.local.set({ savedMinGap: val });
 });
 document.getElementById('max-gap').addEventListener('change', (e) => {
-    chrome.storage.local.set({ savedMaxGap: e.target.value });
+    let val = parseInt(e.target.value);
+    if(val < 1) val = 1;
+    chrome.storage.local.set({ savedMaxGap: val });
 });
-
 
 // --- 1. TAB SWITCHING ---
 document.querySelectorAll('.tab').forEach(tab => {
@@ -33,25 +35,15 @@ const btnBold = document.getElementById('btn-bold');
 const btnItalic = document.getElementById('btn-italic');
 const btnStrike = document.getElementById('btn-strike');
 
-// Format Buttons
 btnBold.addEventListener('click', () => { document.execCommand('bold'); msgBox.focus(); updateToolbar(); });
 btnItalic.addEventListener('click', () => { document.execCommand('italic'); msgBox.focus(); updateToolbar(); });
 btnStrike.addEventListener('click', () => { document.execCommand('strikethrough'); msgBox.focus(); updateToolbar(); });
-
 document.getElementById('btn-add-name').addEventListener('click', () => insertTextAtCursor(' {name} '));
 
-// --- EMOJI PICKER LOGIC ---
+// Emoji Picker
 const emojiBtn = document.getElementById('btn-emoji');
 const emojiPicker = document.getElementById('emoji-picker');
-
-const emojis = [
-    "😀","😁","😂","🤣","😃","😄","😅","😆","😉","😊","😋","😎","😍","😘","🥰","😗","😙","😚",
-    "🙂","🤗","🤩","🤔","🤨","😐","😑","😶","🙄","😏","😣","😥","😮","🤐","😯","😪","😫","😴",
-    "😌","😛","😜","😝","🤤","😒","😓","😔","😕","🙃","🤑","😲","☹️","🙁","😖","😞","😟","😤",
-    "😢","😭","😦","😧","😨","😩","🤯","😬","❤️","🧡","💛","💚","💙","💜","🖤","💔","❣️","💕",
-    "💞","💓","💗","💖","💘","💝","👍","👎","👊","✊","🤛","🤜","🤞","✌️","🤟","🤘","👌","👈",
-    "👉","👆","👇","☝️","✋","🤚","🖐","🖖","👋","🤙","💪","🙏","🔥","✨","🌟","💫","💥","💢"
-];
+const emojis = ["😀","😁","😂","🤣","😃","😄","😅","😆","😉","😊","😋","😎","😍","😘","🥰","😗","😙","😚","🙂","🤗","🤩","🤔","🤨","😐","😑","😶","🙄","😏","😣","😥","😮","🤐","😯","😪","😫","😴","😌","😛","😜","😝","🤤","😒","😓","😔","😕","🙃","🤑","😲","☹️","🙁","😖","😞","😟","😤","😢","😭","😦","😧","😨","😩","🤯","😬","❤️","🧡","💛","💚","💙","💜","🖤","💔","❣️","💕","💞","💓","💗","💖","💘","💝","👍","👎","👊","✊","🤛","🤜","🤞","✌️","🤟","🤘","👌","👈","👉","👆","👇","☝️","✋","🤚","🖐","🖖","👋","🤙","💪","🙏","🔥","✨","🌟","💫","💥","💢"];
 
 function setupEmojiPicker() {
     emojiPicker.innerHTML = "";
@@ -59,28 +51,18 @@ function setupEmojiPicker() {
         let span = document.createElement("span");
         span.textContent = char;
         span.className = "emoji-item";
-        span.addEventListener('click', () => {
-            insertTextAtCursor(char);
-            emojiPicker.style.display = 'none'; 
-        });
+        span.addEventListener('click', () => { insertTextAtCursor(char); emojiPicker.style.display = 'none'; });
         emojiPicker.appendChild(span);
     });
 }
 setupEmojiPicker();
 
 emojiBtn.addEventListener('click', (e) => {
-    e.stopPropagation(); 
-    if (emojiPicker.style.display === 'none' || emojiPicker.style.display === '') {
-        emojiPicker.style.display = 'grid';
-    } else {
-        emojiPicker.style.display = 'none';
-    }
+    e.stopPropagation();
+    emojiPicker.style.display = (emojiPicker.style.display === 'none' || emojiPicker.style.display === '') ? 'grid' : 'none';
 });
-
 document.addEventListener('click', (e) => {
-    if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
-        emojiPicker.style.display = 'none';
-    }
+    if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) { emojiPicker.style.display = 'none'; }
 });
 
 function updateToolbar() {
@@ -97,35 +79,79 @@ function insertTextAtCursor(text) {
     if (window.getSelection) {
         sel = window.getSelection();
         if (sel.getRangeAt && sel.rangeCount) {
-            range = sel.getRangeAt(0);
-            range.deleteContents();
+            range = sel.getRangeAt(0); range.deleteContents();
             let textNode = document.createTextNode(text);
-            range.insertNode(textNode);
-            range.setStartAfter(textNode);
-            range.setEndAfter(textNode);
-            sel.removeAllRanges();
-            sel.addRange(range);
+            range.insertNode(textNode); range.setStartAfter(textNode); range.setEndAfter(textNode);
+            sel.removeAllRanges(); sel.addRange(range);
         }
     }
 }
 
+// 🟢 THE FIX: ADVANCED CONVERTER 🟢
 function convertHtmlToWhatsApp(html) {
-    let text = html.replace(/&nbsp;/g, " ");
-    text = text.replace(/<div>/g, "\n").replace(/<\/div>/g, "").replace(/<br>/g, "\n");
-    const wrap = (content, mark) => { 
-        content = content.trim(); 
-        if(content.length === 0) return "";
-        return `${mark}${content}${mark}`; 
+    let temp = document.createElement("div");
+    temp.innerHTML = html;
+
+    // Helper to wrap text but keep spaces outside
+    function wrap(text, char) {
+        // Only wrap if there is actual content
+        if (!text.trim()) return text;
+        return char + text + char;
+    }
+
+    function traverse(node) {
+        if (node.nodeType === 3) return node.textContent.replace(/\u00A0/g, " ");
+        
+        if (node.nodeType === 1) {
+            let content = "";
+            node.childNodes.forEach(c => content += traverse(c));
+            
+            let tag = node.tagName.toUpperCase();
+            let style = node.style;
+
+            // Formatting
+            if (tag === "B" || tag === "STRONG" || style.fontWeight === "bold" || parseInt(style.fontWeight) >= 600) content = wrap(content, "*");
+            if (tag === "I" || tag === "EM" || style.fontStyle === "italic") content = wrap(content, "_");
+            if (tag === "S" || tag === "STRIKE" || style.textDecoration.includes("line-through")) content = wrap(content, "~");
+
+            // Line Breaks
+            if (tag === "BR") return "\n";
+            if (tag === "DIV" || tag === "P") return "\n" + content + "\n";
+            
+            return content;
+        }
+        return "";
+    }
+
+    let text = traverse(temp);
+
+    // 🔴 CRITICAL FIX: Fix Multiline Formatting
+    // Convert: *Line1\nLine2* --->  *Line1*\n*Line2*
+    // WhatsApp paste breaks if formatting spans newlines
+    
+    const fixMultiline = (str, char) => {
+        // Regex to find formatted blocks: e.g., *text*
+        // We use a regex that catches the markers
+        const regex = new RegExp(`\\${char}([\\s\\S]*?)\\${char}`, 'g');
+        return str.replace(regex, (match, content) => {
+            if (content.includes('\n')) {
+                return content.split('\n')
+                    .map(line => line.trim() ? `${char}${line.trim()}${char}` : '') // Wrap each line individually
+                    .join('\n');
+            }
+            return match;
+        });
     };
-    text = text.replace(/<(b|strong)\b[^>]*>([\s\S]*?)<\/\1>/gi, (m, t, c) => wrap(c, "*"));
-    text = text.replace(/<span[^>]*font-weight:\s*bold[^>]*>([\s\S]*?)<\/span>/gi, (m, c) => wrap(c, "*"));
-    text = text.replace(/<(i|em)\b[^>]*>([\s\S]*?)<\/\1>/gi, (m, t, c) => wrap(c, "_"));
-    text = text.replace(/<(s|strike)\b[^>]*>([\s\S]*?)<\/\1>/gi, (m, t, c) => wrap(c, "~"));
-    text = text.replace(/<[^>]+>/g, ""); 
-    return text.trim();
+
+    text = fixMultiline(text, '*');
+    text = fixMultiline(text, '_');
+    text = fixMultiline(text, '~');
+
+    // Cleanup excessive newlines
+    return text.replace(/\n\s*\n\s*\n/g, "\n\n").trim();
 }
 
-// --- 3. MESSAGE TEMPLATES ---
+// --- 3. TEMPLATES ---
 const templateSelect = document.getElementById('templateSelect');
 chrome.storage.local.get(['msgTemplates'], (data) => { updateTemplateDropdown(data.msgTemplates || {}); });
 
@@ -171,17 +197,16 @@ function updateTemplateDropdown(t) {
     }); 
 }
 
-// --- 4. CSV TEMPLATE DOWNLOAD ---
+// --- 4. CSV TEMPLATE ---
 document.getElementById('downloadTemplate').addEventListener('click', () => {
     const csvContent = "Name,Mobile Number\nJohn Doe,919876543210\nJane Smith,919988776655";
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = "Contact_Template.csv";
+    const a = document.createElement('a'); a.href = url; a.download = "Contact_Template.csv";
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
 });
 
-// --- 5. FILE UPLOAD & CLEANING ---
+// --- 5. FILE UPLOAD ---
 const uploadBox = document.getElementById('upload-box');
 const csvInput = document.getElementById('csvFile');
 const fileNameDisplay = document.getElementById('file-name');
@@ -195,25 +220,25 @@ csvInput.addEventListener('change', async () => {
         let file = csvInput.files[0];
         fileNameDisplay.innerText = `📄 ${file.name}`;
         fileNameDisplay.style.color = "#34d399";
-        let text = await file.text();
-        let lines = text.split('\n');
-        let count = lines.filter(l => l.trim().length > 5).length;
-        statsDisplay.innerText = `File Loaded: ${count} Lines`;
+        try {
+            let text = await file.text();
+            let lines = text.split('\n');
+            let count = lines.filter(l => l.trim().length > 5).length;
+            statsDisplay.innerText = `File Loaded: ${count} Lines`;
+        } catch(e) { alert("Error reading file"); }
     }
 });
 
 document.getElementById('btn-clean-numbers').addEventListener('click', async () => {
     let validContacts = new Map();
-    let invalidCount = 0;
     const addContact = (name, number) => {
         let clean = number.replace(/[^0-9]/g, "");
         if (clean.length >= 10) {
             if (!validContacts.has(clean)) validContacts.set(clean, name.trim());
-        } else { invalidCount++; }
+        }
     };
     if (csvInput.files.length > 0) {
-        let file = csvInput.files[0];
-        let text = await file.text();
+        let text = await csvInput.files[0].text();
         let lines = text.split('\n');
         lines.forEach(line => {
             let parts = line.split(',');
@@ -234,8 +259,7 @@ document.getElementById('btn-clean-numbers').addEventListener('click', async () 
     let outputText = "";
     validContacts.forEach((name, number) => { outputText += `${name},${number}\n`; });
     manualBox.value = outputText.trim();
-    csvInput.value = ""; 
-    fileNameDisplay.innerText = "📂 Data Merged";
+    csvInput.value = ""; fileNameDisplay.innerText = "📂 Data Merged";
     statsDisplay.innerText = `✅ Total: ${validContacts.size}`;
     alert(`Filtered: ${validContacts.size} valid numbers.`);
 });
@@ -244,7 +268,12 @@ document.getElementById('btn-clean-numbers').addEventListener('click', async () 
 document.getElementById('start-btn').addEventListener('click', async () => {
     let manualNumbers = manualBox.value;
     let rawHtml = msgBox.innerHTML;
+    
+    // Convert HTML to WhatsApp Format
     let message = convertHtmlToWhatsApp(rawHtml);
+    
+    if(!message.trim()) { alert("Message is empty!"); return; }
+
     let minGap = parseInt(document.getElementById('min-gap').value) || 5;
     let maxGap = parseInt(document.getElementById('max-gap').value) || 10;
     
@@ -274,41 +303,48 @@ document.getElementById('start-btn').addEventListener('click', async () => {
         let history = data.broadcastHistory || [];
         let newSession = { id: Date.now(), date: new Date().toLocaleString(), total: finalData.length, logs: [] };
         history.unshift(newSession);
+        // Keep only last 50 sessions
+        if(history.length > 50) history = history.slice(0, 50);
         
-        chrome.storage.local.set({ 
+        let storagePayload = { 
             broadcastHistory: history,
             pendingData: finalData,
             message: message, 
             minGap: minGap, maxGap: maxGap,
             status: "active",
             currentSessionId: newSession.id
-        }, () => {
-             let imgInput = document.getElementById('media-file');
-             if (imgInput.files.length > 0) {
-                 let file = imgInput.files[0];
-                 const reader = new FileReader();
-                 reader.onloadend = function() {
-                     chrome.storage.local.set({ imageData: reader.result, fileType: file.type, fileName: file.name }, () => {
-                         chrome.tabs.sendMessage(tab.id, { action: "initiate" });
-                         window.close();
-                     });
-                 }
-                 reader.readAsDataURL(file);
-             } else {
-                 chrome.storage.local.set({ imageData: null, fileType: null }, () => {
-                     chrome.tabs.sendMessage(tab.id, { action: "initiate" });
-                     window.close();
-                 });
-             }
-        });
+        };
+
+        let imgInput = document.getElementById('media-file');
+        if (imgInput.files.length > 0) {
+            let file = imgInput.files[0];
+            const reader = new FileReader();
+            reader.onloadend = function() {
+                storagePayload.imageData = reader.result;
+                storagePayload.fileType = file.type;
+                storagePayload.fileName = file.name;
+                chrome.storage.local.set(storagePayload, () => {
+                    chrome.tabs.sendMessage(tab.id, { action: "initiate" });
+                    alert("🚀 Campaign Started! Check WhatsApp Web.");
+                });
+            }
+            reader.readAsDataURL(file);
+        } else {
+            storagePayload.imageData = null;
+            storagePayload.fileType = null;
+            chrome.storage.local.set(storagePayload, () => {
+                chrome.tabs.sendMessage(tab.id, { action: "initiate" });
+                alert("🚀 Campaign Started! Check WhatsApp Web.");
+            });
+        }
     });
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
-    chrome.storage.local.clear(() => { alert("Reset Done!"); });
+    if(confirm("Reset all data?")) chrome.storage.local.clear(() => { alert("Reset Done!"); });
 });
 
-// --- 7. EXTRAS (HISTORY DOWNLOAD ADDED) ---
+// --- 7. EXTRAS ---
 document.getElementById('extractBtn').addEventListener('click', async () => { 
     let [t] = await chrome.tabs.query({ active: true, currentWindow: true }); 
     chrome.tabs.sendMessage(t.id, { action: "extractGroup" }); 
@@ -321,8 +357,7 @@ chrome.runtime.onMessage.addListener((r) => {
         r.data.forEach(i => { csv += `${i.name},${i.number}\n`; }); 
         const blob = new Blob([csv], { type: 'text/csv' }); 
         const url = window.URL.createObjectURL(blob); 
-        const a = document.createElement('a'); 
-        a.href = url; a.download = `Group_${Date.now()}.csv`; 
+        const a = document.createElement('a'); a.href = url; a.download = `Group_${Date.now()}.csv`; 
         document.body.appendChild(a); a.click(); document.body.removeChild(a); 
     } 
 });
@@ -334,45 +369,28 @@ const loadHistory = () => {
         let h = d.broadcastHistory || [];
         if (h.length === 0) { list.innerHTML = "No history yet."; return; }
         list.innerHTML = "";
-        
-        // --- NEW: History Item with Download Button ---
         h.forEach(s => {
             let sent = s.logs.filter(x => x.status.includes("Sent")).length;
-            
             let div = document.createElement('div'); 
             div.className = 'history-item';
-            div.innerHTML = `
-                <div style="flex:1;">
-                    <span style="font-weight:bold;">📅 ${s.date.split(',')[0]}</span>
-                    <span style="margin-left:10px; color:#cbd5e1;">✅ ${sent}/${s.total}</span>
-                </div>
-                <button class="btn-dl-csv" data-id="${s.id}">⬇ CSV</button>
-            `;
+            div.innerHTML = `<div style="flex:1;"><span style="font-weight:bold;">📅 ${s.date.split(',')[0]}</span><span style="margin-left:10px; color:#cbd5e1;">✅ ${sent}/${s.total}</span></div><button class="btn-dl-csv" data-id="${s.id}">⬇ CSV</button>`;
             list.appendChild(div);
         });
-
-        // Add Click Events to all new Download Buttons
         document.querySelectorAll('.btn-dl-csv').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                downloadSessionCSV(e.target.dataset.id);
-            });
+            btn.addEventListener('click', (e) => { downloadSessionCSV(e.target.dataset.id); });
         });
     });
 };
 
-// --- NEW FUNCTION: Download Specific Session CSV ---
 function downloadSessionCSV(id) {
     chrome.storage.local.get(['broadcastHistory'], d => {
         let s = d.broadcastHistory.find(x => x.id == id);
         if (!s) return;
-        
         let c = "Name,Number,Status,Time\n";
         s.logs.forEach(r => c += `${r.name},${r.number},${r.status},${r.time}\n`);
-        
         let b = new Blob([c], { type: 'text/csv' });
         let u = URL.createObjectURL(b);
-        let a = document.createElement('a');
-        a.href = u; a.download = `Report_${s.date.split(',')[0]}_${id}.csv`;
+        let a = document.createElement('a'); a.href = u; a.download = `Report_${s.date.split(',')[0]}_${id}.csv`;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
     });
 }
