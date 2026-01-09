@@ -1,4 +1,4 @@
-# WA Sender Pro Ultimate - AI Coding Instructions
+# WA AutoConnect - AI Coding Instructions
 
 ## Project Overview
 This is a **Chrome Extension (Manifest V3)** designed for bulk JavaScript-based automation on `web.whatsapp.com`. The extension allows users to upload contacts, compose rich-text messages, and send them automatically with random delays.
