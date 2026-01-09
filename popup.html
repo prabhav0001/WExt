@@ -1,27 +1,9 @@
 <!DOCTYPE html>
-
-
-
 <html lang="en">
-
-
-
 <head>
-
-
-
     <meta charset="UTF-8">
-
-
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-
     <title>WA AutoConnect</title>
-
-
-
     <style>
         :root {
             /* MODERN JET BLACK THEME */
@@ -209,371 +191,96 @@
         }
         .btn-dl-csv:hover { background: var(--primary); color: #000; font-weight: bold; }
     </style>
-
 </head>
-
-
-
 <body>
-
-
-
-
-
-
-
     <div class="header">
-
-
-
         <div class="logo">WA AutoConnect</div>
-
-
-
-        <div style="font-size:10px; color:#64748b;">v.1.0 Beta</div>
-
-
-
+        <div class="version">v.1.0 Beta</div>
     </div>
-
-
-
-
-
-
 
     <div class="tabs">
-
-
-
         <div class="tab active" data-tab="tab-compose">📢 Compose</div>
-
-
-
         <div class="tab" data-tab="tab-settings">⚙️ Settings</div>
-
-
-
         <div class="tab" data-tab="tab-history">📜 History</div>
-
-
-
     </div>
 
-
-
-
-
-
-
     <div id="tab-compose" class="content-section active">
-
-
-
-
-
-
-
         <div class="card">
-
-
-
             <span class="label">
-
-
-
                 Step 1: Add Numbers
-
-
-
                 <a id="downloadTemplate" class="link-text">⬇ CSV Template</a>
-
-
-
             </span>
-
-
-
             <button id="extractBtn" class="btn-secondary">📥 Grab Group Members</button>
 
-
-
-
-
-
-
             <div class="file-box" id="upload-box">
-
-
-
-                <span class="file-text" id="file-name">📂 Click to Upload CSV / Excel</span>
-
-
-
+                <span class="file-icon">📂</span>
+                <span class="file-text" id="file-name">Click to Upload CSV / Excel</span>
             </div>
-
-
-
             <input type="file" id="csvFile" accept=".csv, .txt, .xlsx" style="display: none;">
-
-
-
-
-
-
 
             <textarea id="manual-numbers" placeholder="Paste numbers here (comma separated)..."></textarea>
 
-
-
-
-
-
-
-            <div style="display:flex; justify-content:space-between; margin-top:5px;">
-
-
-
-                <button id="btn-clean-numbers" style="background:none; border:none; color:#34d399; cursor:pointer; font-size:11px;">✨ Clean & Filter</button>
-
-
-
-                <span id="total-contacts-display" style="font-size:11px; color:#94a3b8;">Total: 0</span>
-
-
-
+            <div style="display:flex; justify-content:space-between; margin-top:10px;">
+                <button id="btn-clean-numbers" style="background:none; border:none; color:var(--primary); cursor:pointer; font-size:11px;">✨ Clean & Filter</button>
+                <span id="total-contacts-display" style="font-size:11px; color:var(--text-muted);">Total: 0</span>
             </div>
-
-
-
         </div>
 
-
-
-
-
-
-
         <div class="card">
-
-
-
             <span class="label">Step 2: Message</span>
 
-
-
-
-
-
-
             <div class="template-row">
-
-
-
                 <select id="templateSelect"><option value="">📂 Load Template...</option></select>
-
-
-
                 <button class="icon-btn" id="btnSaveTemp" title="Save">💾</button>
-
-
-
                 <button class="icon-btn" id="btnDelTemp" title="Delete">🗑️</button>
-
-
-
             </div>
-
-
-
-
-
-
 
             <div class="toolbar" style="position: relative;">
-
-
-
                 <button class="tool-btn" id="btn-bold" title="Bold"><b>B</b></button>
-
-
-
                 <button class="tool-btn" id="btn-italic" title="Italic"><i>I</i></button>
-
-
-
                 <button class="tool-btn" id="btn-strike" title="Strike"><s>S</s></button>
-
-
-
                 <button class="tool-btn" id="btn-add-name" title="Add Name Variable">{name}</button>
-
-
-
                 <button class="tool-btn" id="btn-emoji" title="Insert Emoji">😊</button>
 
-
-
-
-
-
-
-                <div id="emoji-picker" style="display:none;"></div>
-
-
-
+                <div id="emoji-picker"></div>
             </div>
-
-
-
-
-
-
 
             <div id="message-editor" class="editor-box" contenteditable="true" placeholder="Type message here... Spintax {Hi|Hello} supported."></div>
-
-
-
         </div>
-
-
-
-
-
-
 
         <div class="card">
-
-
-
             <span class="label">Step 3: Attachment</span>
-
-
-
-            <input type="file" id="media-file" style="font-size:11px; color:#94a3b8;">
-
-
-
+            <input type="file" id="media-file" style="font-size:11px; color:var(--text-muted);">
         </div>
-
-
-
-
-
-
 
         <button id="start-btn" class="btn-main">🚀 START CAMPAIGN</button>
-
-
-
         <button id="reset-btn" class="btn-main btn-danger">⏹️ STOP</button>
-
-
-
     </div>
-
-
-
-
-
-
 
     <div id="tab-settings" class="content-section">
-
-
-
         <div class="card">
-
-
-
             <span class="label">Time Delay (Seconds)</span>
-
-
-
             <div class="setting-row">
-
-
-
                 <span>Min Delay:</span>
-
-
-
                 <input type="number" id="min-gap" value="5">
-
-
-
             </div>
-
-
-
             <div class="setting-row">
-
-
-
                 <span>Max Delay:</span>
-
-
-
                 <input type="number" id="max-gap" value="10">
-
-
-
             </div>
-
-
-
-            <p style="font-size:10px; color:#64748b; margin-top:10px;">Time settings are saved automatically.</p>
-
-
-
+            <p style="font-size:10px; color:var(--text-muted); margin-top:10px;">Time settings are saved automatically.</p>
         </div>
-
-
-
     </div>
-
-
-
-
-
-
 
     <div id="tab-history" class="content-section">
-
-
-
         <div class="card">
-
-
-
-             <span class="label">Recent Broadcasts <button id="refresh-history" style="background:none; border:none; color:#34d399; cursor:pointer; float:right;">↻</button></span>
-
-
-
-             <div id="history-list" style="margin-top:10px; color:#94a3b8; font-size:11px;">Loading...</div>
-
-
-
+             <span class="label">Recent Broadcasts <button id="refresh-history" style="background:none; border:none; color:var(--primary); cursor:pointer; float:right;">↻</button></span>
+             <div id="history-list" style="margin-top:10px; color:var(--text-muted); font-size:11px;">Loading...</div>
         </div>
-
-
-
     </div>
 
-
-
-
-
-
-
     <script src="popup.js"></script>
-
-
-
 </body>
-
-
-
 </html>
 
 
