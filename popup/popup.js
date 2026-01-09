@@ -101,11 +101,11 @@ function convertHtmlToWhatsApp(html) {
 
     function traverse(node) {
         if (node.nodeType === 3) return node.textContent.replace(/\u00A0/g, " ");
-        
+
         if (node.nodeType === 1) {
             let content = "";
             node.childNodes.forEach(c => content += traverse(c));
-            
+
             let tag = node.tagName.toUpperCase();
             let style = node.style;
 
@@ -117,7 +117,7 @@ function convertHtmlToWhatsApp(html) {
             // Line Breaks
             if (tag === "BR") return "\n";
             if (tag === "DIV" || tag === "P") return "\n" + content + "\n";
-            
+
             return content;
         }
         return "";
@@ -128,7 +128,7 @@ function convertHtmlToWhatsApp(html) {
     // 🔴 CRITICAL FIX: Fix Multiline Formatting
     // Convert: *Line1\nLine2* --->  *Line1*\n*Line2*
     // WhatsApp paste breaks if formatting spans newlines
-    
+
     const fixMultiline = (str, char) => {
         // Regex to find formatted blocks: e.g., *text*
         // We use a regex that catches the markers
@@ -163,38 +163,38 @@ document.getElementById('btnSaveTemp').addEventListener('click', () => {
         chrome.storage.local.get(['msgTemplates'], (data) => {
             let templates = data.msgTemplates || {};
             templates[name] = htmlContent;
-            chrome.storage.local.set({ msgTemplates: templates }, () => { 
-                updateTemplateDropdown(templates); templateSelect.value = name; 
+            chrome.storage.local.set({ msgTemplates: templates }, () => {
+                updateTemplateDropdown(templates); templateSelect.value = name;
             });
         });
     }
 });
 
-templateSelect.addEventListener('change', () => { 
+templateSelect.addEventListener('change', () => {
     if (templateSelect.value) {
-        chrome.storage.local.get(['msgTemplates'], d => { 
-            if (d.msgTemplates[templateSelect.value]) msgBox.innerHTML = d.msgTemplates[templateSelect.value]; 
-        }); 
+        chrome.storage.local.get(['msgTemplates'], d => {
+            if (d.msgTemplates[templateSelect.value]) msgBox.innerHTML = d.msgTemplates[templateSelect.value];
+        });
     }
 });
 
-document.getElementById('btnDelTemp').addEventListener('click', () => { 
+document.getElementById('btnDelTemp').addEventListener('click', () => {
     if (templateSelect.value && confirm("Delete selected template?")) {
-        chrome.storage.local.get(['msgTemplates'], d => { 
-            delete d.msgTemplates[templateSelect.value]; 
-            chrome.storage.local.set({ msgTemplates: d.msgTemplates }, () => { 
-                updateTemplateDropdown(d.msgTemplates); msgBox.innerHTML = ""; 
-            }); 
-        }); 
+        chrome.storage.local.get(['msgTemplates'], d => {
+            delete d.msgTemplates[templateSelect.value];
+            chrome.storage.local.set({ msgTemplates: d.msgTemplates }, () => {
+                updateTemplateDropdown(d.msgTemplates); msgBox.innerHTML = "";
+            });
+        });
     }
 });
 
-function updateTemplateDropdown(t) { 
-    templateSelect.innerHTML = '<option value="">📂 Load Template...</option>'; 
-    Object.keys(t).forEach(n => { 
-        let o = document.createElement('option'); o.value = n; o.textContent = n; 
-        templateSelect.appendChild(o); 
-    }); 
+function updateTemplateDropdown(t) {
+    templateSelect.innerHTML = '<option value="">📂 Load Template...</option>';
+    Object.keys(t).forEach(n => {
+        let o = document.createElement('option'); o.value = n; o.textContent = n;
+        templateSelect.appendChild(o);
+    });
 }
 
 // --- 4. CSV TEMPLATE ---
@@ -268,15 +268,15 @@ document.getElementById('btn-clean-numbers').addEventListener('click', async () 
 document.getElementById('start-btn').addEventListener('click', async () => {
     let manualNumbers = manualBox.value;
     let rawHtml = msgBox.innerHTML;
-    
+
     // Convert HTML to WhatsApp Format
     let message = convertHtmlToWhatsApp(rawHtml);
-    
+
     if(!message.trim()) { alert("Message is empty!"); return; }
 
     let minGap = parseInt(document.getElementById('min-gap').value) || 5;
     let maxGap = parseInt(document.getElementById('max-gap').value) || 10;
-    
+
     let finalData = [];
     if (manualNumbers.trim()) {
         let lines = manualNumbers.split('\n');
@@ -298,18 +298,18 @@ document.getElementById('start-btn').addEventListener('click', async () => {
     if (finalData.length === 0) { alert("Please add numbers first!"); return; }
 
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    
+
     chrome.storage.local.get(['broadcastHistory'], (data) => {
         let history = data.broadcastHistory || [];
         let newSession = { id: Date.now(), date: new Date().toLocaleString(), total: finalData.length, logs: [] };
         history.unshift(newSession);
         // Keep only last 50 sessions
         if(history.length > 50) history = history.slice(0, 50);
-        
-        let storagePayload = { 
+
+        let storagePayload = {
             broadcastHistory: history,
             pendingData: finalData,
-            message: message, 
+            message: message,
             minGap: minGap, maxGap: maxGap,
             status: "active",
             currentSessionId: newSession.id
@@ -345,21 +345,21 @@ document.getElementById('reset-btn').addEventListener('click', () => {
 });
 
 // --- 7. EXTRAS ---
-document.getElementById('extractBtn').addEventListener('click', async () => { 
-    let [t] = await chrome.tabs.query({ active: true, currentWindow: true }); 
-    chrome.tabs.sendMessage(t.id, { action: "extractGroup" }); 
+document.getElementById('extractBtn').addEventListener('click', async () => {
+    let [t] = await chrome.tabs.query({ active: true, currentWindow: true });
+    chrome.tabs.sendMessage(t.id, { action: "extractGroup" });
 });
 
-chrome.runtime.onMessage.addListener((r) => { 
-    if (r.action === "groupData") { 
-        if (r.data.length === 0) { alert("No numbers found!"); return; } 
-        let csv = "Name,Mobile Number\n"; 
-        r.data.forEach(i => { csv += `${i.name},${i.number}\n`; }); 
-        const blob = new Blob([csv], { type: 'text/csv' }); 
-        const url = window.URL.createObjectURL(blob); 
-        const a = document.createElement('a'); a.href = url; a.download = `Group_${Date.now()}.csv`; 
-        document.body.appendChild(a); a.click(); document.body.removeChild(a); 
-    } 
+chrome.runtime.onMessage.addListener((r) => {
+    if (r.action === "groupData") {
+        if (r.data.length === 0) { alert("No numbers found!"); return; }
+        let csv = "Name,Mobile Number\n";
+        r.data.forEach(i => { csv += `${i.name},${i.number}\n`; });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = `Group_${Date.now()}.csv`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
 });
 
 const loadHistory = () => {
@@ -371,7 +371,7 @@ const loadHistory = () => {
         list.innerHTML = "";
         h.forEach(s => {
             let sent = s.logs.filter(x => x.status.includes("Sent")).length;
-            let div = document.createElement('div'); 
+            let div = document.createElement('div');
             div.className = 'history-item';
             div.innerHTML = `<div style="flex:1;"><span style="font-weight:bold;">📅 ${s.date.split(',')[0]}</span><span style="margin-left:10px; color:#cbd5e1;">✅ ${sent}/${s.total}</span></div><button class="btn-dl-csv" data-id="${s.id}">⬇ CSV</button>`;
             list.appendChild(div);
