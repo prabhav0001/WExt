@@ -19,7 +19,7 @@ function activateShield() {
             const gainNode = audioCtx.createGain();
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
-            gainNode.gain.value = 0.0001; 
+            gainNode.gain.value = 0.0001;
             oscillator.start();
         }
     } catch(e) {}
@@ -35,7 +35,7 @@ function activateShield() {
         ctx.fillText("Shield Active", 10, 55);
         if (new Date().getMilliseconds() < 500) { ctx.fillStyle = '#10b981'; ctx.fillRect(180, 10, 10, 10); }
     }
-    shieldInterval = setInterval(draw, 1000); 
+    shieldInterval = setInterval(draw, 1000);
 
     const stream = canvas.captureStream(1);
     const video = document.createElement('video');
@@ -70,13 +70,13 @@ function showResumeOverlay() {
     if(document.getElementById("resume-overlay") || isStopped) return;
     let overlay = document.createElement("div");
     overlay.id = "resume-overlay";
-    overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.95); z-index:999999; display:flex; flex-direction:column; justify-content:center; align-items:center; color:#e2e8f0; font-family:'Segoe UI', sans-serif;";
-    overlay.innerHTML = `<h1 style="font-size:24px; margin-bottom:20px; color:#ef4444;">⚠️ Broadcast Paused</h1><button id="btn-resume-click" style="padding:15px 30px; font-size:16px; background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">RESUME NOW 🚀</button>`;
+    overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.95); z-index:999999; display:flex; flex-direction:column; justify-content:center; align-items:center; color:#e2e8f0; font-family:'Segoe UI', sans-serif; backdrop-filter: blur(5px);";
+    overlay.innerHTML = `<h1 style="font-size:24px; margin-bottom:20px; color:#ef4444; text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);">⚠️ Broadcast Paused</h1><button id="btn-resume-click" style="padding:15px 40px; font-size:16px; background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; border-radius:12px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4); transition: transform 0.2s;">RESUME NOW 🚀</button>`;
     document.body.appendChild(overlay);
-    document.getElementById("btn-resume-click").onclick = () => { 
-        isStopped = false; // Reset stop flag
-        activateShield(); 
-        chrome.storage.local.get(['status'], d => { if(d.status === 'active') startProcess(); }); 
+    document.getElementById("btn-resume-click").onclick = () => {
+        isStopped = false;
+        activateShield();
+        chrome.storage.local.get(['status'], d => { if(d.status === 'active') startProcess(); });
     };
 }
 function removeResumeOverlay() { let ov = document.getElementById("resume-overlay"); if(ov) ov.remove(); }
@@ -88,10 +88,10 @@ function updateDashboard(statusText, statusColor, forceShow = false) {
     let dash = document.getElementById("ext-dashboard");
     chrome.storage.local.get(['broadcastHistory', 'currentSessionId', 'pendingData', 'status'], (data) => {
         // Double check status from storage to be sure
-        if ((data.status !== "active" && data.status !== "complete" && data.status !== "stopped" && !forceShow) || (isStopped && !forceShow)) { 
-            if (dash) dash.style.display = 'none'; return; 
+        if ((data.status !== "active" && data.status !== "complete" && data.status !== "stopped" && !forceShow) || (isStopped && !forceShow)) {
+            if (dash) dash.style.display = 'none'; return;
         }
-        
+
         let history = data.broadcastHistory || [];
         let session = history.find(s => s.id == data.currentSessionId);
         let remaining = data.pendingData ? data.pendingData.length : 0;
@@ -105,121 +105,123 @@ function updateDashboard(statusText, statusColor, forceShow = false) {
 
         if (!dash) {
             dash = document.createElement("div"); dash.id = "ext-dashboard";
-            dash.style.cssText = `position: fixed; top: 15px; right: 15px; z-index: 99999; background: #0f172a; padding: 0; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.5); font-family: 'Segoe UI', sans-serif; width: 280px; overflow: hidden; border: 1px solid #334155; color: #e2e8f0;`;
+            dash.style.cssText = `position: fixed; top: 15px; right: 15px; z-index: 99999; background: #0f172a; padding: 0; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); font-family: 'Segoe UI', sans-serif; width: 280px; overflow: hidden; border: 1px solid #334155; color: #e2e8f0; backdrop-filter: blur(10px);`;
             document.body.appendChild(dash);
         }
         dash.style.display = 'block';
-        
-        let headerColor = "#3b82f6"; let headerTitle = "🚀 Sending...";
-        if(isFinished) { headerColor = "#10b981"; headerTitle = "🎉 Completed"; }
-        else if(storageStopped || isStopped) { headerColor = "#ef4444"; headerTitle = "⛔ Stopped"; }
-        else if(isPaused) { headerColor = "#f59e0b"; headerTitle = "⏸️ Paused"; }
-        
+
+        let headerColor = "linear-gradient(135deg, #3b82f6, #2563eb)"; let headerTitle = "🚀 Sending...";
+        if(isFinished) { headerColor = "linear-gradient(135deg, #10b981, #059669)"; headerTitle = "🎉 Completed"; }
+        else if(storageStopped || isStopped) { headerColor = "linear-gradient(135deg, #ef4444, #b91c1c)"; headerTitle = "⛔ Stopped"; }
+        else if(isPaused) { headerColor = "linear-gradient(135deg, #f59e0b, #d97706)"; headerTitle = "⏸️ Paused"; }
+
         let controlButtons = "";
         if (isFinished || storageStopped || isStopped) {
-            controlButtons = `<button id="dash-close-btn" style="width:100%; padding:10px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; color:white; background:#334155; border:1px solid #475569;">❌ Close Dashboard</button>`;
+            controlButtons = `<button id="dash-close-btn" style="width:100%; padding:10px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; color:white; background:#1e293b; border:1px solid #334155; transition:0.3s;">❌ Close Dashboard</button>`;
         } else {
             controlButtons = `
-                <button id="dash-pause-btn" style="flex:1; padding:8px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; color:white; background:${isPaused ? '#3b82f6' : '#f59e0b'}; margin-right:5px;">${isPaused ? "Resume" : "Pause"}</button>
-                <button id="dash-stop-btn" style="flex:1; padding:8px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; color:white; background:#ef4444;">Stop</button>
+                <button id="dash-pause-btn" style="flex:1; padding:8px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; color:white; background:${isPaused ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : '#334155'}; border:1px solid ${isPaused ? 'transparent' : '#475569'}; margin-right:8px; transition:0.3s;">${isPaused ? "Resume" : "Pause"}</button>
+                <button id="dash-stop-btn" style="flex:1; padding:8px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; color:white; background:linear-gradient(135deg, #ef4444, #dc2626); transition:0.3s;">Stop</button>
             `;
         }
 
         let shieldBtn = "";
         if(!isFinished && !storageStopped && !isStopped) {
-            shieldBtn = isShieldActive ? 
-            `<div style="background:rgba(16, 185, 129, 0.1); color:#34d399; padding:6px; border-radius:6px; text-align:center; font-size:11px; margin-top:8px; border:1px solid #059669;">✅ Shield Active</div>` : 
-            `<button id="btn-shield" style="width:100%; padding:8px; margin-top:8px; background:linear-gradient(135deg, #6366f1, #4f46e5); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">🛡️ Enable Shield</button>`;
+            shieldBtn = isShieldActive ?
+            `<div style="background:rgba(16, 185, 129, 0.1); color:#34d399; padding:8px; border-radius:8px; text-align:center; font-size:12px; margin-top:10px; border:1px solid rgba(16, 185, 129, 0.3); font-weight:600;">✅ Safe Mode Active</div>` :
+            `<button id="btn-shield" style="width:100%; padding:10px; margin-top:10px; background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; box-shadow:0 4px 15px rgba(16, 185, 129, 0.2);">🛡️ Enable Safe Mode</button>`;
         }
 
         dash.innerHTML = `
-            <div style="background:${headerColor}; padding:12px; color:white; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
-                <span>${headerTitle}</span> <span style="font-size:12px; background:rgba(0,0,0,0.2); padding:2px 8px; border-radius:10px;">${percentage}%</span>
+            <div style="background:${headerColor}; padding:15px; color:white; font-weight:700; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <span style="font-size:14px;">${headerTitle}</span>
+                <span style="font-size:11px; background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:12px;">${percentage}%</span>
             </div>
-            <div style="background:#1e293b; height:4px; width:100%;"><div style="height:100%; width:${percentage}%; background:${headerColor}; transition: width 0.5s ease;"></div></div>
+            <div style="background:#1e293b; height:4px; width:100%;"><div style="height:100%; width:${percentage}%; background:${headerColor}; transition: width 0.5s ease; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);"></div></div>
             <div style="padding:15px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:13px; border-bottom:1px solid #334155; padding-bottom:8px; color:#cbd5e1;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:13px; border-bottom:1px solid #334155; padding-bottom:10px; color:#94a3b8;">
                     <span>📦 Total: <strong style="color:white;">${total}</strong></span><span>⏳ Left: <strong style="color:white;">${remaining}</strong></span>
                 </div>
-                <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:12px;">
-                    <span style="color:#34d399;">✅ Sent: <strong>${sent}</strong></span><span style="color:#ef4444;">❌ Fail: <strong>${failed}</strong></span>
+                <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:15px;">
+                    <span style="color:#34d399; display:flex; align-items:center;">✅ Sent: <strong style="margin-left:5px;">${sent}</strong></span>
+                    <span style="color:#ef4444; display:flex; align-items:center;">❌ Fail: <strong style="margin-left:5px;">${failed}</strong></span>
                 </div>
-                <div style="margin-bottom:12px; font-size:11px; color:#94a3b8; text-align:center;">Status: <strong style="color:#e2e8f0;">${isFinished ? "All tasks finished." : (storageStopped || isStopped ? "Process Terminated." : (statusText || "Running..."))}</strong></div>
+                <div style="margin-bottom:15px; font-size:11px; color:#64748b; text-align:center; background:#1e293b; padding:8px; border-radius:6px; border:1px solid #334155;">Status: <strong style="color:#e2e8f0;">${isFinished ? "All tasks finished." : (storageStopped || isStopped ? "Process Terminated." : (statusText || "Running..."))}</strong></div>
                 <div style="display:flex; justify-content:space-between;">${controlButtons}</div>
                 ${shieldBtn}
             </div>`;
-        
+
         if (isFinished || storageStopped || isStopped) {
             let closeBtn = document.getElementById("dash-close-btn");
-            if(closeBtn) closeBtn.onclick = () => { 
-                dash.style.display = 'none'; 
-                chrome.storage.local.set({ status: "inactive" }); 
+            if(closeBtn) closeBtn.onclick = () => {
+                dash.style.display = 'none';
+                chrome.storage.local.set({ status: "inactive" });
                 isStopped = true; // Ensure logic stays dead
             };
         } else {
             document.getElementById("dash-pause-btn").onclick = () => togglePause();
             document.getElementById("dash-stop-btn").onclick = () => stopBroadcast();
-            let btn = document.getElementById("btn-shield"); 
+            let btn = document.getElementById("btn-shield");
             if(btn && !isShieldActive) btn.onclick = () => activateShield();
         }
     });
 }
 
-function togglePause() { 
+function togglePause() {
     if(isStopped) return;
-    isPaused = !isPaused; 
-    if(isPaused) updateDashboard("Paused", "orange", true); 
-    else { 
-        updateDashboard("Resuming...", "green", true); 
-        chrome.storage.local.get(['pendingData'], d => { if(d.pendingData?.length > 0) nextNumber(d, true); }); 
-    } 
+    isPaused = !isPaused;
+    if(isPaused) updateDashboard("Paused", "orange", true);
+    else {
+        updateDashboard("Resuming...", "green", true);
+        chrome.storage.local.get(['pendingData'], d => { if(d.pendingData?.length > 0) nextNumber(d, true); });
+    }
 }
 
-function stopBroadcast() { 
-    if(confirm("Stop?")) { 
+function stopBroadcast() {
+    if(confirm("Stop?")) {
         isStopped = true; // 🔴 KILL SWITCH
-        chrome.storage.local.set({ status: "stopped" }, () => { 
-            stopShield(); 
-            updateDashboard(null, null, true); 
-        }); 
-    } 
+        chrome.storage.local.set({ status: "stopped" }, () => {
+            stopShield();
+            updateDashboard(null, null, true);
+        });
+    }
 }
 
 function showStatus(t, c) { if(!isStopped) updateDashboard(t, c, true); }
 function getRandomDelay(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function logStatus(n, num, s) { 
-    return new Promise((r) => { 
+function logStatus(n, num, s) {
+    return new Promise((r) => {
         if(isStopped) { r(); return; } // Don't log if stopped
-        chrome.storage.local.get(['broadcastHistory', 'currentSessionId'], (d) => { 
-            let h = d.broadcastHistory || []; 
-            let i = h.findIndex(x => x.id == d.currentSessionId); 
-            if (i !== -1) { 
-                h[i].logs.push({ name: n, number: num, status: s, time: new Date().toLocaleTimeString() }); 
-                chrome.storage.local.set({ broadcastHistory: h }, () => { 
-                    if(!isStopped) updateDashboard("Log Saved", "grey", true); 
-                    r(); 
-                }); 
-            } else r(); 
-        }); 
-    }); 
+        chrome.storage.local.get(['broadcastHistory', 'currentSessionId'], (d) => {
+            let h = d.broadcastHistory || [];
+            let i = h.findIndex(x => x.id == d.currentSessionId);
+            if (i !== -1) {
+                h[i].logs.push({ name: n, number: num, status: s, time: new Date().toLocaleTimeString() });
+                chrome.storage.local.set({ broadcastHistory: h }, () => {
+                    if(!isStopped) updateDashboard("Log Saved", "grey", true);
+                    r();
+                });
+            } else r();
+        });
+    });
 }
 
 // --- 4. LISTENER & STARTUP ---
-window.addEventListener('load', () => { 
-    chrome.storage.local.get(['status'], d => { 
-        if(d.status === "active") { 
+window.addEventListener('load', () => {
+    chrome.storage.local.get(['status'], d => {
+        if(d.status === "active") {
             isStopped = false;
-            showResumeOverlay(); 
-        } 
-    }); 
+            showResumeOverlay();
+        }
+    });
 });
 
-chrome.runtime.onMessage.addListener((r) => { 
-    if (r.action === "initiate") { 
-        isPaused = false; 
+chrome.runtime.onMessage.addListener((r) => {
+    if (r.action === "initiate") {
+        isPaused = false;
         isStopped = false; // 🔴 RESET STOP FLAG
-        updateDashboard("Initializing...", "blue", true); 
-        startProcess(); 
+        updateDashboard("Initializing...", "blue", true);
+        startProcess();
     }
     if (r.action === "extractGroup") {
         // ... (Group extraction code kept same)
@@ -228,7 +230,7 @@ chrome.runtime.onMessage.addListener((r) => {
             if(headerBar) {
                 headerBar.click();
                 setTimeout(() => {
-                   let textData = document.body.innerText; 
+                   let textData = document.body.innerText;
                    let pattern = /\+?\d[\d -]{8,15}\d/g;
                    let potentialNumbers = textData.match(pattern) || [];
                    let uniqueNumbers = [...new Set(potentialNumbers)].filter(n => {
@@ -236,18 +238,18 @@ chrome.runtime.onMessage.addListener((r) => {
                    });
                    let data = uniqueNumbers.map(n => ({ name: "Member", number: n.replace(/\D/g, '') }));
                    chrome.runtime.sendMessage({ action: "groupData", data: data });
-                }, 2000); 
+                }, 2000);
             } else { alert("Please open a Group Chat first!"); }
         } catch(e) { alert("Error extracting."); }
     }
 });
 
 // --- 5. HELPERS ---
-function smartTimeout(callback, delay) { 
+function smartTimeout(callback, delay) {
     if(isStopped) return; // 🔴 SECURITY CHECK
     setTimeout(() => {
         if(!isStopped) callback(); // 🔴 DOUBLE CHECK BEFORE EXECUTION
-    }, delay); 
+    }, delay);
 }
 
 function spinText(text) { if (!text) return ""; return text.replace(/\{(.*?)\}/g, (m, c) => { if (c.includes('|')) { const o = c.split('|'); return o[Math.floor(Math.random() * o.length)]; } return m; }); }
@@ -269,27 +271,27 @@ function checkForErrorPopup(user, data) {
         isHandlingError = true;
         if (popupBtn) { popupBtn.click(); setTimeout(() => popupBtn.click(), 300); }
         window.history.pushState({}, null, "https://web.whatsapp.com/");
-        
+
         logStatus(user.name, user.number, "Invalid ❌").then(() => {
             let rem = data.pendingData.slice(1);
             chrome.storage.local.set({ pendingData: rem }, () => {
                 setTimeout(() => {
-                    isHandlingError = false; 
+                    isHandlingError = false;
                     if (rem.length > 0 && !isStopped) {
                         let cleanLink = document.createElement('a'); cleanLink.href = `https://web.whatsapp.com/send?phone=${rem[0].number}`;
                         cleanLink.style.display = 'none'; document.body.appendChild(cleanLink); cleanLink.click();
                         setTimeout(startProcess, 3000);
-                    } else { 
-                        stopShield(); 
+                    } else {
+                        stopShield();
                         if(!isStopped) {
-                            chrome.storage.local.set({ status: "complete" }); 
-                            updateDashboard(null, null, true); 
+                            chrome.storage.local.set({ status: "complete" });
+                            updateDashboard(null, null, true);
                         }
                     }
                 }, 2000);
             });
         });
-        return true; 
+        return true;
     }
     return false;
 }
@@ -305,31 +307,31 @@ function isOnCorrectChat(targetNumber) {
     let timeSinceNav = Date.now() - lastNavigationTime;
     let inputBox = document.querySelector('footer div[contenteditable="true"]');
     if (lastNavigationTime > 0 && timeSinceNav < 15000 && inputBox) {
-        if(!document.querySelector('div[data-testid="intro-md-beta-logo-dark"]')) return true; 
+        if(!document.querySelector('div[data-testid="intro-md-beta-logo-dark"]')) return true;
     }
     return false;
 }
 
 // --- 7. MAIN PROCESS ---
 function startProcess() {
-    if (isPaused || isStopped) { 
-        if(isPaused) updateDashboard("Paused", "orange", true); 
-        return; 
+    if (isPaused || isStopped) {
+        if(isPaused) updateDashboard("Paused", "orange", true);
+        return;
     }
     if (isHandlingError) return;
-    scriptStartTime = Date.now(); 
+    scriptStartTime = Date.now();
 
     chrome.storage.local.get(['pendingData', 'message', 'status', 'minGap', 'maxGap', 'imageData', 'fileType', 'fileName'], async (data) => {
         if (isStopped) return; // 🔴 STOP CHECK AFTER ASYNC
 
-        if (data.status !== "active" || !data.pendingData || data.pendingData.length === 0) { 
-            stopShield(); 
+        if (data.status !== "active" || !data.pendingData || data.pendingData.length === 0) {
+            stopShield();
             if(data.pendingData && data.pendingData.length === 0) chrome.storage.local.set({ status: "complete" });
-            updateDashboard(null, null, true); return; 
+            updateDashboard(null, null, true); return;
         }
 
         let user = data.pendingData[0];
-        if (checkForErrorPopup(user, data)) return; 
+        if (checkForErrorPopup(user, data)) return;
 
         if (isOnCorrectChat(user.number)) {
             showStatus(`Chat: ${user.name || "User"}...`, "orange");
@@ -346,7 +348,7 @@ function startProcess() {
                     box.focus();
                     let spinnedMsg = spinText(data.message);
                     let finalMsg = spinnedMsg.replace(/{name}/gi, user.name || "");
-                    
+
                     if (data.imageData) {
                         try {
                             const blob = await (await fetch(data.imageData)).blob();
@@ -354,18 +356,18 @@ function startProcess() {
                             showStatus(`Uploading...`, "purple");
                             const dt = new DataTransfer(); dt.items.add(file);
                             box.dispatchEvent(new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }));
-                            waitForSendButtonAndClick(data, user, finalMsg, box); 
+                            waitForSendButtonAndClick(data, user, finalMsg, box);
                         } catch (e) { logStatus(user.name, user.number, "File Failed").then(() => nextNumber(data)); }
                     } else {
                         // TEXT ONLY - PASTE + ENTER
                         const dt = new DataTransfer();
                         dt.setData("text/plain", finalMsg);
                         box.dispatchEvent(new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }));
-                        
+
                         showStatus("Hitting Enter...", "blue");
                         setTimeout(() => {
                             if(isStopped) return;
-                            triggerEnter(box); 
+                            triggerEnter(box);
                             setTimeout(() => {
                                 if(isStopped) return;
                                 if(box.innerText.trim() === "") {
@@ -377,20 +379,20 @@ function startProcess() {
                             }, 500);
                         }, 500);
                     }
-                } 
-                else if (attempts > 60) { logStatus(user.name, user.number, "Failed (No Box)").then(() => nextNumber(data)); } 
+                }
+                else if (attempts > 60) { logStatus(user.name, user.number, "Failed (No Box)").then(() => nextNumber(data)); }
                 else { smartTimeout(checkLoop, 1000); }
             };
             checkLoop();
-        } else { 
-            showStatus(`Navigating...`, "grey"); 
+        } else {
+            showStatus(`Navigating...`, "grey");
             let link = document.createElement('a');
             link.href = `https://web.whatsapp.com/send?phone=${user.number}`;
             link.style.display = 'none'; document.body.appendChild(link); link.click();
             lastNavigationTime = Date.now();
             smartTimeout(() => {
                 if(isStopped) return;
-                if (isOnCorrectChat(user.number)) startProcess(); 
+                if (isOnCorrectChat(user.number)) startProcess();
                 else if (!isHandlingError) { if(!checkForErrorPopup(user, data)) startProcess(); }
             }, 8000);
         }
@@ -403,7 +405,7 @@ function waitForSendButtonAndClick(data, currentUser, messageToWrite, boxElement
     const uploadLoop = () => {
         if(isPaused || isHandlingError || isStopped) return;
         attempts++;
-        
+
         let sendBtn = null;
         let allIcons = document.querySelectorAll('span[data-icon="send"]');
         for (let icon of allIcons) { if (icon.offsetParent !== null) { sendBtn = icon; break; } }
@@ -424,32 +426,32 @@ function waitForSendButtonAndClick(data, currentUser, messageToWrite, boxElement
                              if(i.offsetParent !== null && i.innerText.trim() === "") { captionBox = i; break; }
                          }
                     }
-                    if (captionBox) { 
-                        captionBox.click(); captionBox.focus(); 
+                    if (captionBox) {
+                        captionBox.click(); captionBox.focus();
                         setTimeout(() => {
                             const dt = new DataTransfer(); dt.setData("text/plain", messageToWrite);
                             captionBox.dispatchEvent(new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }));
-                        }, 500); 
+                        }, 500);
                     }
                 }
                 smartTimeout(() => {
                     if(isStopped) return;
                     showStatus("Sending...", "green");
                     let clickable = sendBtn.closest('div[role="button"]') || sendBtn.closest('button') || sendBtn;
-                    clickable.click(); 
+                    clickable.click();
                     showStatus("Sent!", "orange");
-                    smartTimeout(() => { logStatus(currentUser.name, currentUser.number, "Sent ✅").then(() => nextNumber(data)); }, 3000); 
-                }, 2500); 
-            }, 2000); 
-        } 
+                    smartTimeout(() => { logStatus(currentUser.name, currentUser.number, "Sent ✅").then(() => nextNumber(data)); }, 3000);
+                }, 2500);
+            }, 2000);
+        }
         else if (attempts > maxWait) {
-            showStatus("Timeout ❌", "red"); 
+            showStatus("Timeout ❌", "red");
             logStatus(currentUser.name, currentUser.number, "Failed").then(() => nextNumber(data));
-        } 
+        }
         else {
             if(attempts % 5 === 0 && boxElement) {
                 boxElement.focus();
-                document.execCommand('insertText', false, ' '); 
+                document.execCommand('insertText', false, ' ');
                 setTimeout(() => { document.execCommand('delete'); }, 50);
             }
             smartTimeout(uploadLoop, 1000);
@@ -461,17 +463,17 @@ function waitForSendButtonAndClick(data, currentUser, messageToWrite, boxElement
 function nextNumber(data, fastSkip = false) {
     if(isPaused || isStopped) { if(isPaused) updateDashboard("Paused", "orange", true); return; }
     let targetDelay = getRandomDelay(data.minGap || 5, data.maxGap || 10);
-    let actualWait = fastSkip ? 2 : targetDelay; 
+    let actualWait = fastSkip ? 2 : targetDelay;
     showStatus(`Waiting ${actualWait}s...`, fastSkip ? "red" : "green");
-    
+
     smartTimeout(() => {
         if(isStopped) return;
         let rem = data.pendingData.slice(1);
         chrome.storage.local.set({ pendingData: rem }, () => {
             if (rem.length > 0 && !isStopped) startProcess();
-            else if(!isStopped) { 
-                stopShield(); chrome.storage.local.set({ status: "complete" }); 
-                updateDashboard(null, null, true); 
+            else if(!isStopped) {
+                stopShield(); chrome.storage.local.set({ status: "complete" });
+                updateDashboard(null, null, true);
                 setTimeout(() => alert("All Done!"), 500);
             }
         });
