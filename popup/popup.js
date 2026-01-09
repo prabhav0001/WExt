@@ -397,3 +397,23 @@ function downloadSessionCSV(id) {
 
 document.getElementById('refresh-history').addEventListener('click', loadHistory);
 document.querySelector('.tab[data-tab="tab-history"]').addEventListener('click', loadHistory);
+
+// --- 8. MEDIA UPLOAD UI ---
+const mediaBox = document.getElementById('media-upload-box');
+const mediaInput = document.getElementById('media-file');
+const mediaNameDisplay = document.getElementById('media-file-name');
+
+mediaBox.addEventListener('click', () => mediaInput.click());
+
+mediaInput.addEventListener('change', () => {
+    if (mediaInput.files.length > 0) {
+        let file = mediaInput.files[0];
+        mediaNameDisplay.innerText = `📎 ${file.name}`;
+        mediaNameDisplay.style.color = "var(--primary)";
+        mediaBox.style.borderColor = "var(--primary)";
+    } else {
+        mediaNameDisplay.innerText = "Click to Upload Image/Video";
+        mediaNameDisplay.style.color = "var(--text-muted)";
+        mediaBox.style.borderColor = "#404040";
+    }
+});

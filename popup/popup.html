@@ -250,7 +250,11 @@
 
         <div class="card">
             <span class="label">Step 3: Attachment</span>
-            <input type="file" id="media-file" style="font-size:11px; color:var(--text-muted);">
+            <div class="file-box" id="media-upload-box">
+                <span class="file-icon">📷</span>
+                <span class="file-text" id="media-file-name">Click to Upload Image/Video</span>
+            </div>
+            <input type="file" id="media-file" style="display: none;">
         </div>
 
         <button id="start-btn" class="btn-main">🚀 START CAMPAIGN</button>
