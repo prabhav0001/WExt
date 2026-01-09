@@ -1,7 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "WA Sender Pro Ultimate",
-  "version": "3.5",
+  "name": "WA AutoConnect - Bulk Messenger",
+  "description": "Automate bulk messaging on WhatsApp Web with smart throttling protection, personalized custom messages, and contact management.",
+  "version": "1.0",
+  "version_name": "1.0 Beta",
   "permissions": [
     "activeTab",
     "scripting",
