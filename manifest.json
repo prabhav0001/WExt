@@ -9,7 +9,8 @@
     "unlimitedStorage"
   ],
   "host_permissions": [
-    "https://web.whatsapp.com/*"
+    "https://web.whatsapp.com/*",
+    "https://api.gumroad.com/*"
   ],
   "action": {
     "default_popup": "popup.html"

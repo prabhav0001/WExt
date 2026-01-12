@@ -1,12 +1,199 @@
-// popup.js - FINAL BOLD FIX (Multiline Support) 🛠️✅
+// popup.js - FINAL FIXED VERSION (Product ID Logic) 🚀✅
 
-// --- 0. AUTO LOAD SETTINGS ---
+// 🔴 YOUR GUMROAD CONFIGURATION 🔴
+const GUMROAD_PERMALINK = "wa-sender-pro"; // Link for Buy Button
+const GUMROAD_PRODUCT_ID = "109-J6Ah3WEwoHLKexRNYw=="; // 👈 Secret ID from Error Message
+
+let isProVersion = false; // Default to Free
+
+// --- 1. INITIALIZATION & AUTO-LOGIN ---
 document.addEventListener('DOMContentLoaded', () => {
-    chrome.storage.local.get(['savedMinGap', 'savedMaxGap'], (data) => {
+    // Check saved settings AND Login State
+    chrome.storage.local.get(['licenseKey', 'isFreeMode', 'savedMinGap', 'savedMaxGap'], (data) => {
+        
+        // A. If User has a License Key saved
+        if (data.licenseKey) {
+            verifyGumroadKey(data.licenseKey, true); // Background check
+        } 
+        // B. If User selected Free Mode previously
+        else if (data.isFreeMode) {
+            isProVersion = false;
+            updateUIForFree();
+            showApp();
+        } 
+        // C. New User -> Show Login Screen
+        else {
+            showLogin();
+        }
+
+        // Load Time Settings
         if(data.savedMinGap) document.getElementById('min-gap').value = data.savedMinGap;
         if(data.savedMaxGap) document.getElementById('max-gap').value = data.savedMaxGap;
     });
 });
+
+// --- 2. LOGIN SCREEN ACTIONS ---
+
+// Verify License Button
+document.getElementById('btn-verify').addEventListener('click', () => {
+    const inputKey = document.getElementById('license-key').value;
+    if(!inputKey || !inputKey.trim()) { alert("Please enter a key!"); return; }
+    verifyGumroadKey(inputKey, false);
+});
+
+// Continue with Free Trial Button
+document.getElementById('btn-try-free').addEventListener('click', () => {
+    isProVersion = false;
+    // Save 'isFreeMode' so it doesn't ask again
+    chrome.storage.local.set({ isFreeMode: true }, () => {
+        updateUIForFree();
+        showApp();
+    });
+});
+
+// Upgrade / Buy Key Button
+const upgradeBtns = document.querySelectorAll('#btn-upgrade, #link-buy-key');
+upgradeBtns.forEach(btn => {
+    btn?.addEventListener('click', () => {
+        window.open(`https://gumroad.com/l/${GUMROAD_PERMALINK}`, "_blank");
+    });
+});
+
+// --- 3. LICENSE VERIFICATION LOGIC (ID BASED) ---
+async function verifyGumroadKey(key, isBackgroundCheck) {
+    const btn = document.getElementById('btn-verify');
+    if(!isBackgroundCheck) {
+        btn.innerText = "Checking...";
+        btn.disabled = true;
+    }
+
+    try {
+        const cleanKey = key.trim();
+        
+        // 🔥 Using Product ID instead of Permalink (Fixed)
+        const cleanProductID = GUMROAD_PRODUCT_ID.trim(); 
+
+        console.log("Verifying Key:", cleanKey); 
+
+        const response = await fetch("https://api.gumroad.com/v2/licenses/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            // 👇 Sending 'product_id' as requested by the error
+            body: `product_id=${encodeURIComponent(cleanProductID)}&license_key=${encodeURIComponent(cleanKey)}`
+        });
+
+        const data = await response.json();
+        console.log("Gumroad Response:", data);
+
+        if (data.success && !data.purchase.refunded && !data.purchase.chargebacked && !data.purchase.subscription_cancelled_at) {
+            
+            // ✅ VALID PRO KEY
+            chrome.storage.local.set({ licenseKey: cleanKey, isFreeMode: false }, () => {
+                isProVersion = true;
+                if(!isBackgroundCheck) alert("✅ License Activated! PRO Features Unlocked.");
+                updateUIForPro();
+                showApp();
+            });
+
+        } else {
+            // ❌ INVALID OR ERROR
+            if(!isBackgroundCheck) {
+                alert("❌ Activation Failed!\nReason: " + (data.message || "Invalid Key"));
+            }
+            if(isBackgroundCheck) {
+                chrome.storage.local.remove('licenseKey');
+                showLogin();
+            } 
+        }
+
+    } catch (error) {
+        console.error("Network Error:", error);
+        if(isBackgroundCheck) {
+            isProVersion = true;
+            updateUIForPro();
+            showApp(); 
+        } else {
+            alert("⚠️ Network Error!\nCheck Internet connection.");
+        }
+    } finally {
+        if(!isBackgroundCheck) {
+            btn.innerText = "✅ Activate License";
+            btn.disabled = false;
+        }
+    }
+}
+
+// Logout / Reset Logic
+document.getElementById('btn-logout').addEventListener('click', () => {
+    let msg = isProVersion ? 
+        "Deactivate PRO License and switch account?" : 
+        "Go back to Activation Screen?";
+
+    if(confirm(msg)) {
+        chrome.storage.local.remove(['licenseKey', 'isFreeMode'], () => {
+            isProVersion = false;
+            showLogin();
+            document.getElementById('license-key').value = "";
+            document.getElementById('btn-verify').innerText = "✅ Activate License";
+        });
+    }
+});
+
+// --- 4. UI MANAGERS ---
+
+function updateUIForPro() {
+    const badge = document.getElementById('app-status-badge');
+    if(badge) {
+        badge.innerText = "PRO VERSION";
+        badge.className = "badge-pro";
+    }
+    const statusText = document.getElementById('setting-status-text');
+    if(statusText) {
+        statusText.innerText = "✅ PRO License Active";
+        statusText.style.color = "#34d399";
+    }
+    const settingsDesc = document.querySelector('#tab-settings p');
+    if(settingsDesc) settingsDesc.innerText = "Unlimited Messaging & Features Enabled.";
+
+    document.getElementById('btn-logout').style.display = "block";
+    document.getElementById('btn-logout').innerText = "🔒 Deactivate License";
+    const upBtn = document.getElementById('btn-upgrade');
+    if(upBtn) upBtn.style.display = "none";
+}
+
+function updateUIForFree() {
+    const badge = document.getElementById('app-status-badge');
+    if(badge) {
+        badge.innerText = "FREE PLAN";
+        badge.className = "badge-free";
+    }
+    const statusText = document.getElementById('setting-status-text');
+    if(statusText) {
+        statusText.innerText = "⚠️ Free Version (Limited)";
+        statusText.style.color = "#f59e0b";
+    }
+    const settingsDesc = document.querySelector('#tab-settings p');
+    if(settingsDesc) settingsDesc.innerText = "Plan: Lifetime Free\nLimit: 5 Messages per Batch.";
+
+    document.getElementById('btn-logout').style.display = "block";
+    document.getElementById('btn-logout').innerText = "🔑 Enter License Key";
+    const upBtn = document.getElementById('btn-upgrade');
+    if(upBtn) upBtn.style.display = "block";
+}
+
+function showApp() {
+    document.getElementById('login-section').classList.add('hidden');
+    document.getElementById('main-app').classList.remove('hidden');
+}
+
+function showLogin() {
+    document.getElementById('login-section').classList.remove('hidden');
+    document.getElementById('main-app').classList.add('hidden');
+}
+
+// ==========================================
+// 🚀 5. MAIN APP LOGIC (Messaging, Tabs, Etc.)
+// ==========================================
 
 document.getElementById('min-gap').addEventListener('change', (e) => {
     let val = parseInt(e.target.value);
@@ -19,7 +206,6 @@ document.getElementById('max-gap').addEventListener('change', (e) => {
     chrome.storage.local.set({ savedMaxGap: val });
 });
 
-// --- 1. TAB SWITCHING ---
 document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -29,7 +215,6 @@ document.querySelectorAll('.tab').forEach(tab => {
     });
 });
 
-// --- 2. EDITOR & TOOLBAR ---
 const msgBox = document.getElementById('message-editor');
 const btnBold = document.getElementById('btn-bold');
 const btnItalic = document.getElementById('btn-italic');
@@ -40,7 +225,6 @@ btnItalic.addEventListener('click', () => { document.execCommand('italic'); msgB
 btnStrike.addEventListener('click', () => { document.execCommand('strikethrough'); msgBox.focus(); updateToolbar(); });
 document.getElementById('btn-add-name').addEventListener('click', () => insertTextAtCursor(' {name} '));
 
-// Emoji Picker
 const emojiBtn = document.getElementById('btn-emoji');
 const emojiPicker = document.getElementById('emoji-picker');
 const emojis = ["😀","😁","😂","🤣","😃","😄","😅","😆","😉","😊","😋","😎","😍","😘","🥰","😗","😙","😚","🙂","🤗","🤩","🤔","🤨","😐","😑","😶","🙄","😏","😣","😥","😮","🤐","😯","😪","😫","😴","😌","😛","😜","😝","🤤","😒","😓","😔","😕","🙃","🤑","😲","☹️","🙁","😖","😞","😟","😤","😢","😭","😦","😧","😨","😩","🤯","😬","❤️","🧡","💛","💚","💙","💜","🖤","💔","❣️","💕","💞","💓","💗","💖","💘","💝","👍","👎","👊","✊","🤛","🤜","🤞","✌️","🤟","🤘","👌","👈","👉","👆","👇","☝️","✋","🤚","🖐","🖖","👋","🤙","💪","🙏","🔥","✨","🌟","💫","💥","💢"];
@@ -87,71 +271,40 @@ function insertTextAtCursor(text) {
     }
 }
 
-// 🟢 THE FIX: ADVANCED CONVERTER 🟢
 function convertHtmlToWhatsApp(html) {
     let temp = document.createElement("div");
     temp.innerHTML = html;
-
-    // Helper to wrap text but keep spaces outside
-    function wrap(text, char) {
-        // Only wrap if there is actual content
-        if (!text.trim()) return text;
-        return char + text + char;
-    }
-
+    function wrap(text, char) { if (!text.trim()) return text; return char + text + char; }
     function traverse(node) {
         if (node.nodeType === 3) return node.textContent.replace(/\u00A0/g, " ");
-        
         if (node.nodeType === 1) {
             let content = "";
             node.childNodes.forEach(c => content += traverse(c));
-            
             let tag = node.tagName.toUpperCase();
             let style = node.style;
-
-            // Formatting
             if (tag === "B" || tag === "STRONG" || style.fontWeight === "bold" || parseInt(style.fontWeight) >= 600) content = wrap(content, "*");
             if (tag === "I" || tag === "EM" || style.fontStyle === "italic") content = wrap(content, "_");
             if (tag === "S" || tag === "STRIKE" || style.textDecoration.includes("line-through")) content = wrap(content, "~");
-
-            // Line Breaks
             if (tag === "BR") return "\n";
             if (tag === "DIV" || tag === "P") return "\n" + content + "\n";
-            
             return content;
         }
         return "";
     }
-
     let text = traverse(temp);
-
-    // 🔴 CRITICAL FIX: Fix Multiline Formatting
-    // Convert: *Line1\nLine2* --->  *Line1*\n*Line2*
-    // WhatsApp paste breaks if formatting spans newlines
-    
     const fixMultiline = (str, char) => {
-        // Regex to find formatted blocks: e.g., *text*
-        // We use a regex that catches the markers
         const regex = new RegExp(`\\${char}([\\s\\S]*?)\\${char}`, 'g');
         return str.replace(regex, (match, content) => {
             if (content.includes('\n')) {
-                return content.split('\n')
-                    .map(line => line.trim() ? `${char}${line.trim()}${char}` : '') // Wrap each line individually
-                    .join('\n');
+                return content.split('\n').map(line => line.trim() ? `${char}${line.trim()}${char}` : '').join('\n');
             }
             return match;
         });
     };
-
-    text = fixMultiline(text, '*');
-    text = fixMultiline(text, '_');
-    text = fixMultiline(text, '~');
-
-    // Cleanup excessive newlines
+    text = fixMultiline(text, '*'); text = fixMultiline(text, '_'); text = fixMultiline(text, '~');
     return text.replace(/\n\s*\n\s*\n/g, "\n\n").trim();
 }
 
-// --- 3. TEMPLATES ---
 const templateSelect = document.getElementById('templateSelect');
 chrome.storage.local.get(['msgTemplates'], (data) => { updateTemplateDropdown(data.msgTemplates || {}); });
 
@@ -169,7 +322,6 @@ document.getElementById('btnSaveTemp').addEventListener('click', () => {
         });
     }
 });
-
 templateSelect.addEventListener('change', () => { 
     if (templateSelect.value) {
         chrome.storage.local.get(['msgTemplates'], d => { 
@@ -177,7 +329,6 @@ templateSelect.addEventListener('change', () => {
         }); 
     }
 });
-
 document.getElementById('btnDelTemp').addEventListener('click', () => { 
     if (templateSelect.value && confirm("Delete selected template?")) {
         chrome.storage.local.get(['msgTemplates'], d => { 
@@ -188,7 +339,6 @@ document.getElementById('btnDelTemp').addEventListener('click', () => {
         }); 
     }
 });
-
 function updateTemplateDropdown(t) { 
     templateSelect.innerHTML = '<option value="">📂 Load Template...</option>'; 
     Object.keys(t).forEach(n => { 
@@ -196,8 +346,6 @@ function updateTemplateDropdown(t) {
         templateSelect.appendChild(o); 
     }); 
 }
-
-// --- 4. CSV TEMPLATE ---
 document.getElementById('downloadTemplate').addEventListener('click', () => {
     const csvContent = "Name,Mobile Number\nJohn Doe,919876543210\nJane Smith,919988776655";
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -206,7 +354,6 @@ document.getElementById('downloadTemplate').addEventListener('click', () => {
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
 });
 
-// --- 5. FILE UPLOAD ---
 const uploadBox = document.getElementById('upload-box');
 const csvInput = document.getElementById('csvFile');
 const fileNameDisplay = document.getElementById('file-name');
@@ -264,12 +411,9 @@ document.getElementById('btn-clean-numbers').addEventListener('click', async () 
     alert(`Filtered: ${validContacts.size} valid numbers.`);
 });
 
-// --- 6. START BROADCAST ---
 document.getElementById('start-btn').addEventListener('click', async () => {
     let manualNumbers = manualBox.value;
     let rawHtml = msgBox.innerHTML;
-    
-    // Convert HTML to WhatsApp Format
     let message = convertHtmlToWhatsApp(rawHtml);
     
     if(!message.trim()) { alert("Message is empty!"); return; }
@@ -297,13 +441,17 @@ document.getElementById('start-btn').addEventListener('click', async () => {
 
     if (finalData.length === 0) { alert("Please add numbers first!"); return; }
 
+    if (!isProVersion && finalData.length > 5) {
+        alert(`🔒 FREE PLAN LIMIT!\n\nYou can only send 5 messages at a time on the Free Plan.\n\nYou added ${finalData.length} numbers.\nPlease remove some or Upgrade to PRO.`);
+        return;
+    }
+
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     
     chrome.storage.local.get(['broadcastHistory'], (data) => {
         let history = data.broadcastHistory || [];
         let newSession = { id: Date.now(), date: new Date().toLocaleString(), total: finalData.length, logs: [] };
         history.unshift(newSession);
-        // Keep only last 50 sessions
         if(history.length > 50) history = history.slice(0, 50);
         
         let storagePayload = { 
@@ -344,7 +492,6 @@ document.getElementById('reset-btn').addEventListener('click', () => {
     if(confirm("Reset all data?")) chrome.storage.local.clear(() => { alert("Reset Done!"); });
 });
 
-// --- 7. EXTRAS ---
 document.getElementById('extractBtn').addEventListener('click', async () => { 
     let [t] = await chrome.tabs.query({ active: true, currentWindow: true }); 
     chrome.tabs.sendMessage(t.id, { action: "extractGroup" }); 

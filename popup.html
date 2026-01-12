@@ -1,981 +1,300 @@
 <!DOCTYPE html>
-
-
-
 <html lang="en">
-
-
-
 <head>
-
-
-
     <meta charset="UTF-8">
-
-
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-
     <title>WA Sender Pro</title>
-
-
-
     <style>
-
-
-
         /* MAIN BODY STYLE */
-
-
-
-        body { 
-
-
-
-            width: 380px; 
-
-
-
-            font-family: 'Segoe UI', sans-serif; 
-
-
-
-            background: #0f172a; 
-
-
-
-            color: #e2e8f0; 
-
-
-
-            margin: 0; padding: 0; 
-
-
-
-            overflow-x: hidden; 
-
-
-
+        body {
+            width: 380px;
+            height: 600px;
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+            position: relative;
         }
-
-
-
-        
-
-
 
         /* HEADER */
-
-
-
-        .header { 
-
-
-
-            background: rgba(30, 41, 59, 0.95); 
-
-
-
-            padding: 15px 20px; 
-
-
-
-            display: flex; justify-content: space-between; align-items: center; 
-
-
-
-            border-bottom: 1px solid rgba(255,255,255,0.1); 
-
-
-
-            position: sticky; top: 0; z-index: 100; 
-
-
-
+        .header {
+            background: rgba(30, 41, 59, 0.95);
+            padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .logo {
+            font-size: 18px; font-weight: 700;
+            background: linear-gradient(135deg, #34d399, #3b82f6);
+            background-clip: text;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-
-
-        .logo { 
-
-
-
-            font-size: 18px; font-weight: 700; 
-
-
-
-            background: linear-gradient(135deg, #34d399, #3b82f6); 
-
-
-
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
-
-
-
+        /* 🔴 LOGIN SCREEN */
+        #login-section {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #0f172a;
+            z-index: 999;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 20px; box-sizing: border-box;
+        }
+        .login-input {
+            width: 100%; padding: 12px; border-radius: 8px;
+            border: 1px solid #334155; background: #1e293b;
+            color: white; margin-bottom: 15px; text-align: center; font-size: 16px;
+            box-sizing: border-box;
         }
 
-
-
-        
-
-
+        /* UTILITY CLASS */
+        .hidden { display: none !important; }
 
         /* TABS */
-
-
-
-        .tabs { 
-
-
-
-            display: flex; background: #1e293b; padding: 5px; margin: 10px; 
-
-
-
-            border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); 
-
-
-
+        .tabs {
+            display: flex; background: #1e293b; padding: 5px; margin: 10px;
+            border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);
         }
-
-
-
-        .tab { 
-
-
-
-            flex: 1; text-align: center; padding: 8px; font-size: 13px; 
-
-
-
-            cursor: pointer; color: #94a3b8; border-radius: 6px; transition: 0.3s; 
-
-
-
+        .tab {
+            flex: 1; text-align: center; padding: 8px; font-size: 13px;
+            cursor: pointer; color: #94a3b8; border-radius: 6px; transition: 0.3s;
         }
-
-
-
-        .tab.active { 
-
-
-
-            background: #334155; color: #fff; font-weight: 600; 
-
-
-
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
-
-
-
+        .tab.active {
+            background: #334155; color: #fff; font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-
-
-
-        
-
-
 
         .content-section { display: none; padding: 0 15px 15px 15px; animation: fadeIn 0.3s ease; }
-
-
-
         .content-section.active { display: block; }
-
-
-
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-
-
-
-
-
-
         /* CARDS */
-
-
-
-        .card { 
-
-
-
-            background: #1e293b; border-radius: 10px; padding: 12px; 
-
-
-
-            margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); 
-
-
-
-            position: relative; 
-
-
-
+        .card {
+            background: #1e293b; border-radius: 10px; padding: 12px;
+            margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
         }
-
-
-
-        .label { 
-
-
-
-            font-size: 11px; text-transform: uppercase; color: #64748b; 
-
-
-
+        .label {
+            font-size: 11px; text-transform: uppercase; color: #64748b;
             font-weight: 700; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
-
-
-
         }
-
-
-
-        
-
-
 
         /* INPUTS */
-
-
-
-        textarea { 
-
-
-
-            width: 100%; height: 80px; background: #0f172a; border: 1px solid #334155; 
-
-
-
-            border-radius: 8px; color: white; padding: 10px; font-family: inherit; 
-
-
-
+        textarea {
+            width: 100%; height: 80px; background: #0f172a; border: 1px solid #334155;
+            border-radius: 8px; color: white; padding: 10px; font-family: inherit;
             font-size: 12px; resize: vertical; box-sizing: border-box; outline: none;
-
-
-
         }
-
-
-
         textarea:focus { border-color: #34d399; }
 
-
-
-
-
-
-
         /* FILE BOX */
-
-
-
-        .file-box { 
-
-
-
-            border: 1px dashed #475569; border-radius: 8px; padding: 12px; 
-
-
-
-            text-align: center; cursor: pointer; transition: 0.3s; 
-
-
-
+        .file-box {
+            border: 1px dashed #475569; border-radius: 8px; padding: 12px;
+            text-align: center; cursor: pointer; transition: 0.3s;
             background: rgba(15, 23, 42, 0.5); margin-bottom: 8px;
-
-
-
         }
-
-
-
         .file-box:hover { border-color: #34d399; background: rgba(52, 211, 153, 0.05); }
-
-
-
         .file-text { font-size: 12px; color: #94a3b8; pointer-events: none; }
 
-
-
-        
-
-
-
         /* TEMPLATE ROW */
-
-
-
         .template-row { display: flex; gap: 5px; margin-bottom: 8px; }
-
-
-
-        #templateSelect { 
-
-
-
-            flex: 1; background: #0f172a; border: 1px solid #334155; color: #cbd5e1; 
-
-
-
-            border-radius: 6px; padding: 5px; font-size: 12px; outline: none; 
-
-
-
+        #templateSelect {
+            flex: 1; background: #0f172a; border: 1px solid #334155; color: #cbd5e1;
+            border-radius: 6px; padding: 5px; font-size: 12px; outline: none;
         }
-
-
-
-        .icon-btn { 
-
-
-
-            background: #334155; border: none; color: #cbd5e1; width: 30px; 
-
-
-
-            border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; 
-
-
-
+        .icon-btn {
+            background: #334155; border: none; color: #cbd5e1; width: 30px;
+            border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
-
-
-
         .icon-btn:hover { background: #475569; color: white; }
 
-
-
-
-
-
-
         /* TOOLBAR */
-
-
-
         .toolbar { display: flex; gap: 5px; margin-bottom: 8px; background: #0f172a; padding: 5px; border-radius: 6px; border: 1px solid #334155; }
-
-
-
-        .tool-btn { 
-
-
-
-            flex: 1; background: transparent; border: none; color: #cbd5e1; 
-
-
-
-            height: 24px; border-radius: 4px; cursor: pointer; font-size: 12px; 
-
-
-
+        .tool-btn {
+            flex: 1; background: transparent; border: none; color: #cbd5e1;
+            height: 24px; border-radius: 4px; cursor: pointer; font-size: 12px;
         }
-
-
-
         .tool-btn:hover { background: #334155; color: white; }
-
-
-
         .tool-btn.active-tool { color: #34d399; font-weight: bold; }
 
-
-
-
-
-
-
         /* EMOJI PICKER */
-
-
-
         #emoji-picker {
-
-
-
             display: none; position: absolute; bottom: 40px; right: 10px;
-
-
-
             width: 200px; height: 150px; background: #1e293b; border: 1px solid #475569;
-
-
-
             border-radius: 8px; padding: 5px; overflow-y: auto; display: grid;
-
-
-
             grid-template-columns: repeat(6, 1fr); gap: 2px; z-index: 50;
-
-
-
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-
-
-
         }
-
-
-
         .emoji-item { cursor: pointer; padding: 4px; font-size: 16px; text-align: center; border-radius: 4px; }
-
-
-
         .emoji-item:hover { background: #334155; }
 
-
-
-
-
-
-
-        .editor-box { 
-
-
-
-            min-height: 80px; max-height: 120px; overflow-y: auto; background: #0f172a; 
-
-
-
-            border: 1px solid #334155; border-radius: 8px; padding: 10px; font-size: 13px; 
-
-
-
-            outline: none; line-height: 1.5; white-space: pre-wrap; 
-
-
-
+        .editor-box {
+            min-height: 80px; max-height: 120px; overflow-y: auto; background: #0f172a;
+            border: 1px solid #334155; border-radius: 8px; padding: 10px; font-size: 13px;
+            outline: none; line-height: 1.5; white-space: pre-wrap;
         }
-
-
-
         .editor-box:focus { border-color: #34d399; }
-
-
-
         .editor-box:empty:before { content: attr(placeholder); color: #475569; }
 
-
-
-
-
-
-
         /* BUTTONS */
-
-
-
-        .btn-main { 
-
-
-
-            width: 100%; background: linear-gradient(135deg, #10b981, #059669); 
-
-
-
-            border: none; padding: 12px; color: white; font-weight: 700; border-radius: 8px; 
-
-
-
-            cursor: pointer; font-size: 14px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); 
-
-
-
+        .btn-main {
+            width: 100%; background: linear-gradient(135deg, #10b981, #059669);
+            border: none; padding: 12px; color: white; font-weight: 700; border-radius: 8px;
+            cursor: pointer; font-size: 14px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
         }
-
-
-
         .btn-main:hover { transform: translateY(-2px); }
-
-
-
         .btn-danger { background: #ef4444; margin-top: 10px; background-image: none; box-shadow: none; }
 
-
-
-        
-
-
-
-        .btn-secondary { 
-
-
-
-            background: #334155; color: #cbd5e1; border: 1px solid #475569; 
-
-
-
+        .btn-secondary {
+            background: #334155; color: #cbd5e1; border: 1px solid #475569;
             padding: 8px; width: 100%; border-radius: 6px; cursor: pointer; font-size: 12px; margin-bottom: 8px;
-
-
-
         }
-
-
-
         .btn-secondary:hover { background: #475569; color: white; }
 
-
-
-
-
-
+        /* FREE TRIAL BTN */
+        .btn-outline {
+            background: transparent; border: 1px solid #3b82f6; color: #3b82f6;
+            margin-top: 10px; width: 100%; padding: 10px; border-radius: 8px; cursor: pointer;
+        }
+        .btn-outline:hover { background: rgba(59, 130, 246, 0.1); }
 
         /* SETTINGS */
-
-
-
         .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-
-
-
-        .setting-row input { 
-
-
-
-            width: 60px; background: #0f172a; border: 1px solid #334155; 
-
-
-
-            color: white; padding: 5px; border-radius: 6px; text-align: center; 
-
-
-
+        .setting-row input {
+            width: 60px; background: #0f172a; border: 1px solid #334155;
+            color: white; padding: 5px; border-radius: 6px; text-align: center;
         }
-
-
-
-        
-
-
 
         .link-text { color: #3b82f6; text-decoration: none; font-size: 10px; cursor: pointer; }
-
-
-
         .link-text:hover { text-decoration: underline; }
 
-
-
-
-
-
-
-        /* HISTORY ITEM (UPDATED FOR DOWNLOAD BTN) */
-
-
-
-        .history-item { 
-
-
-
-            background: #334155; padding: 10px; margin-bottom: 6px; border-radius: 6px; 
-
-
-
-            font-size: 12px; display: flex; justify-content: space-between; align-items: center; 
-
-
-
+        /* HISTORY ITEM */
+        .history-item {
+            background: #334155; padding: 10px; margin-bottom: 6px; border-radius: 6px;
+            font-size: 12px; display: flex; justify-content: space-between; align-items: center;
         }
-
-
-
         .btn-dl-csv {
-
-
-
-            background: #1e293b; border: 1px solid #475569; color: #34d399; 
-
-
-
+            background: #1e293b; border: 1px solid #475569; color: #34d399;
             padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 10px;
-
-
-
         }
-
-
-
         .btn-dl-csv:hover { background: #34d399; color: #0f172a; }
 
-
-
+        /* STATUS BADGES */
+        .badge-free { background: #f59e0b; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+        .badge-pro { background: #34d399; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
     </style>
-
-
-
 </head>
-
-
-
 <body>
 
+    <div id="login-section">
+        <h1 style="color:#34d399; margin-bottom: 10px;">WA Sender Pro</h1>
+        <h3 style="color:#e2e8f0; margin-top:0;">🔒 Activation Required</h3>
+        <p style="color:#94a3b8; font-size:12px; margin-bottom:20px;">Enter your License Key to unlock unlimited features.</p>
 
+        <input type="text" id="license-key" class="login-input" placeholder="Paste License Key here...">
+        <button id="btn-verify" class="btn-main">✅ Activate License</button>
 
+        <button id="btn-try-free" class="btn-outline">🎁 Continue with Free Trial</button>
 
-
-
-
-    <div class="header">
-
-
-
-        <div class="logo">WA Sender Pro</div>
-
-
-
-        <div style="font-size:10px; color:#64748b;">v3.2 Final</div>
-
-
-
+        <p style="margin-top:20px; font-size:11px;">
+            <a href="https://sonupanwar.gumroad.com/l/wa-sender-pro" target="_blank" style="color:#3b82f6;">Buy a License Key</a>
+        </p>
     </div>
 
+    <div id="main-app" class="hidden">
+        <div class="header">
+            <div class="logo">WA Sender Pro</div>
+            <div id="app-status-badge" class="badge-free">FREE TRIAL</div>
+        </div>
 
+        <div class="tabs">
+            <div class="tab active" data-tab="tab-compose">📢 Compose</div>
+            <div class="tab" data-tab="tab-settings">⚙️ Settings</div>
+            <div class="tab" data-tab="tab-history">📜 History</div>
+        </div>
 
+        <div id="tab-compose" class="content-section active">
+            <div class="card">
+                <span class="label">
+                    Step 1: Add Numbers
+                    <a id="downloadTemplate" class="link-text">⬇ CSV Template</a>
+                </span>
+                <button id="extractBtn" class="btn-secondary">📥 Grab Group Members</button>
 
+                <div class="file-box" id="upload-box">
+                    <span class="file-text" id="file-name">📂 Click to Upload CSV / Excel</span>
+                </div>
+                <input type="file" id="csvFile" accept=".csv, .txt, .xlsx" style="display: none;">
 
+                <textarea id="manual-numbers" placeholder="Paste numbers here (comma separated)..."></textarea>
 
+                <div style="display:flex; justify-content:space-between; margin-top:5px;">
+                    <button id="btn-clean-numbers" style="background:none; border:none; color:#34d399; cursor:pointer; font-size:11px;">✨ Clean & Filter</button>
+                    <span id="total-contacts-display" style="font-size:11px; color:#94a3b8;">Total: 0</span>
+                </div>
+            </div>
 
-    <div class="tabs">
+            <div class="card">
+                <span class="label">Step 2: Message</span>
+                <div class="template-row">
+                    <select id="templateSelect"><option value="">📂 Load Template...</option></select>
+                    <button class="icon-btn" id="btnSaveTemp" title="Save">💾</button>
+                    <button class="icon-btn" id="btnDelTemp" title="Delete">🗑️</button>
+                </div>
 
+                <div class="toolbar" style="position: relative;">
+                    <button class="tool-btn" id="btn-bold" title="Bold"><b>B</b></button>
+                    <button class="tool-btn" id="btn-italic" title="Italic"><i>I</i></button>
+                    <button class="tool-btn" id="btn-strike" title="Strike"><s>S</s></button>
+                    <button class="tool-btn" id="btn-add-name" title="Add Name Variable">{name}</button>
+                    <button class="tool-btn" id="btn-emoji" title="Insert Emoji">😊</button>
+                    <div id="emoji-picker" style="display:none;"></div>
+                </div>
 
+                <div id="message-editor" class="editor-box" contenteditable="true" placeholder="Type message here... Spintax {Hi|Hello} supported."></div>
+            </div>
 
-        <div class="tab active" data-tab="tab-compose">📢 Compose</div>
+            <div class="card">
+                <span class="label">Step 3: Attachment</span>
+                <input type="file" id="media-file" style="font-size:11px; color:#94a3b8;">
+            </div>
 
+            <button id="start-btn" class="btn-main">🚀 START CAMPAIGN</button>
+            <button id="reset-btn" class="btn-main btn-danger">⏹️ STOP</button>
+        </div>
 
+        <div id="tab-settings" class="content-section">
+            <div class="card">
+                <span class="label">Subscription Status</span>
+                <div id="setting-status-text" style="color: #f59e0b; font-weight: bold; margin-bottom: 10px;">Free Trial (Limited)</div>
+                <p style="font-size:11px; color:#94a3b8;">Free version is limited to 5 messages per batch.</p>
+                <button id="btn-logout" class="btn-secondary" style="margin-top:10px; background:#ef4444; color:white; border:none; display:none;">🔒 Deactivate License</button>
+                 <button id="btn-upgrade" class="btn-main" style="margin-top:10px;">💎 Upgrade to PRO</button>
+            </div>
 
-        <div class="tab" data-tab="tab-settings">⚙️ Settings</div>
+            <div class="card">
+                <span class="label">Time Delay (Seconds)</span>
+                <div class="setting-row">
+                    <span>Min Delay:</span>
+                    <input type="number" id="min-gap" value="5">
+                </div>
+                <div class="setting-row">
+                    <span>Max Delay:</span>
+                    <input type="number" id="max-gap" value="10">
+                </div>
+            </div>
+        </div>
 
-
-
-        <div class="tab" data-tab="tab-history">📜 History</div>
-
-
-
+        <div id="tab-history" class="content-section">
+            <div class="card">
+                 <span class="label">Recent Broadcasts <button id="refresh-history" style="background:none; border:none; color:#34d399; cursor:pointer; float:right;">↻</button></span>
+                 <div id="history-list" style="margin-top:10px; color:#94a3b8; font-size:11px;">Loading...</div>
+            </div>
+        </div>
     </div>
-
-
-
-
-
-
-
-    <div id="tab-compose" class="content-section active">
-
-
-
-        
-
-
-
-        <div class="card">
-
-
-
-            <span class="label">
-
-
-
-                Step 1: Add Numbers
-
-
-
-                <a id="downloadTemplate" class="link-text">⬇ CSV Template</a>
-
-
-
-            </span>
-
-
-
-            <button id="extractBtn" class="btn-secondary">📥 Grab Group Members</button>
-
-
-
-
-
-
-
-            <div class="file-box" id="upload-box">
-
-
-
-                <span class="file-text" id="file-name">📂 Click to Upload CSV / Excel</span>
-
-
-
-            </div>
-
-
-
-            <input type="file" id="csvFile" accept=".csv, .txt, .xlsx" style="display: none;">
-
-
-
-            
-
-
-
-            <textarea id="manual-numbers" placeholder="Paste numbers here (comma separated)..."></textarea>
-
-
-
-            
-
-
-
-            <div style="display:flex; justify-content:space-between; margin-top:5px;">
-
-
-
-                <button id="btn-clean-numbers" style="background:none; border:none; color:#34d399; cursor:pointer; font-size:11px;">✨ Clean & Filter</button>
-
-
-
-                <span id="total-contacts-display" style="font-size:11px; color:#94a3b8;">Total: 0</span>
-
-
-
-            </div>
-
-
-
-        </div>
-
-
-
-
-
-
-
-        <div class="card">
-
-
-
-            <span class="label">Step 2: Message</span>
-
-
-
-            
-
-
-
-            <div class="template-row">
-
-
-
-                <select id="templateSelect"><option value="">📂 Load Template...</option></select>
-
-
-
-                <button class="icon-btn" id="btnSaveTemp" title="Save">💾</button>
-
-
-
-                <button class="icon-btn" id="btnDelTemp" title="Delete">🗑️</button>
-
-
-
-            </div>
-
-
-
-
-
-
-
-            <div class="toolbar" style="position: relative;">
-
-
-
-                <button class="tool-btn" id="btn-bold" title="Bold"><b>B</b></button>
-
-
-
-                <button class="tool-btn" id="btn-italic" title="Italic"><i>I</i></button>
-
-
-
-                <button class="tool-btn" id="btn-strike" title="Strike"><s>S</s></button>
-
-
-
-                <button class="tool-btn" id="btn-add-name" title="Add Name Variable">{name}</button>
-
-
-
-                <button class="tool-btn" id="btn-emoji" title="Insert Emoji">😊</button>
-
-
-
-                
-
-
-
-                <div id="emoji-picker" style="display:none;"></div>
-
-
-
-            </div>
-
-
-
-            
-
-
-
-            <div id="message-editor" class="editor-box" contenteditable="true" placeholder="Type message here... Spintax {Hi|Hello} supported."></div>
-
-
-
-        </div>
-
-
-
-
-
-
-
-        <div class="card">
-
-
-
-            <span class="label">Step 3: Attachment</span>
-
-
-
-            <input type="file" id="media-file" style="font-size:11px; color:#94a3b8;">
-
-
-
-        </div>
-
-
-
-
-
-
-
-        <button id="start-btn" class="btn-main">🚀 START CAMPAIGN</button>
-
-
-
-        <button id="reset-btn" class="btn-main btn-danger">⏹️ STOP</button>
-
-
-
-    </div>
-
-
-
-
-
-
-
-    <div id="tab-settings" class="content-section">
-
-
-
-        <div class="card">
-
-
-
-            <span class="label">Time Delay (Seconds)</span>
-
-
-
-            <div class="setting-row">
-
-
-
-                <span>Min Delay:</span>
-
-
-
-                <input type="number" id="min-gap" value="5">
-
-
-
-            </div>
-
-
-
-            <div class="setting-row">
-
-
-
-                <span>Max Delay:</span>
-
-
-
-                <input type="number" id="max-gap" value="10">
-
-
-
-            </div>
-
-
-
-            <p style="font-size:10px; color:#64748b; margin-top:10px;">Time settings are saved automatically.</p>
-
-
-
-        </div>
-
-
-
-    </div>
-
-
-
-
-
-
-
-    <div id="tab-history" class="content-section">
-
-
-
-        <div class="card">
-
-
-
-             <span class="label">Recent Broadcasts <button id="refresh-history" style="background:none; border:none; color:#34d399; cursor:pointer; float:right;">↻</button></span>
-
-
-
-             <div id="history-list" style="margin-top:10px; color:#94a3b8; font-size:11px;">Loading...</div>
-
-
-
-        </div>
-
-
-
-    </div>
-
-
-
-
-
-
 
     <script src="popup.js"></script>
-
-
-
 </body>
-
-
-
 </html>
-
-
-
-
