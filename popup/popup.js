@@ -494,17 +494,19 @@ elements.csvInput.addEventListener('change', async () => {
 
     const file = elements.csvInput.files[0];
     elements.fileNameDisplay.innerText = `📄 ${file.name}`;
-    elements.fileNameDisplay.style.color = '#34d399';
+    elements.fileNameDisplay.className = 'file-text uploaded';
+    elements.uploadBox.style.borderColor = 'var(--primary)';
 
     try {
         const text = await utils.readFile(file);
         const lines = text.split('\n');
         const count = lines.filter(l => l.trim().length > CONFIG.LIMITS.minPhoneLength - 5).length;
-        elements.statsDisplay.innerText = `File Loaded: ${count} Lines`;
+        elements.statsDisplay.innerText = `Total: ${count} contacts`;
     } catch (e) {
         console.error('File read error:', e);
         elements.statsDisplay.innerText = 'Error reading file';
-        elements.fileNameDisplay.style.color = '#ef4444';
+        elements.fileNameDisplay.className = 'file-text';
+        elements.uploadBox.style.borderColor = 'var(--danger)';
     }
 });
 
@@ -559,9 +561,9 @@ elements.btnCleanNumbers.addEventListener('click', async () => {
 
     elements.manualBox.value = outputText.trim();
     elements.csvInput.value = '';
-    elements.fileNameDisplay.innerText = '📂 Data Merged';
-    elements.statsDisplay.innerText = `✅ Total: ${validContacts.size}`;
-    alert(`Filtered: ${validContacts.size} valid numbers.`);
+    elements.fileNameDisplay.innerText = '📂 Data merged successfully';
+    elements.fileNameDisplay.className = 'file-text uploaded';
+    elements.statsDisplay.innerText = `Total: ${validContacts.size} contacts`;
 });
 
 // ============================================
@@ -694,14 +696,28 @@ chrome.runtime.onMessage.addListener((request) => {
 // ============================================
 // HISTORY MANAGEMENT
 // ============================================
+
+/**
+ * Loads and renders broadcast history from storage
+ */
 async function loadHistory() {
-    elements.historyList.innerHTML = 'Loading...';
+    elements.historyList.innerHTML = `
+        <div class="empty-state loading">
+            <div class="empty-state-icon">📋</div>
+            <div class="empty-state-text">Loading history...</div>
+        </div>
+    `;
 
     const data = await storage.get([STORAGE_KEYS.history]);
     const history = data[STORAGE_KEYS.history] || [];
 
     if (history.length === 0) {
-        elements.historyList.innerHTML = 'No history yet.';
+        elements.historyList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <div class="empty-state-text">No campaigns yet. Start your first one!</div>
+            </div>
+        `;
         return;
     }
 
@@ -709,14 +725,19 @@ async function loadHistory() {
 
     history.forEach(session => {
         const sent = session.logs.filter(x => x.status.includes('Sent')).length;
+        const failed = session.logs.filter(x => x.status.includes('Failed') || x.status.includes('Invalid')).length;
         const div = document.createElement('div');
         div.className = 'history-item';
         div.innerHTML = `
-            <div style="flex:1;">
-                <span style="font-weight:bold;">📅 ${session.date.split(',')[0]}</span>
-                <span style="margin-left:10px;color:#cbd5e1;">✅ ${sent}/${session.total}</span>
+            <div class="history-info">
+                <div class="history-date">📅 ${session.date}</div>
+                <div class="history-stats">
+                    <span class="sent">✅ ${sent} sent</span>
+                    <span>❌ ${failed} failed</span>
+                    <span>📦 ${session.total} total</span>
+                </div>
             </div>
-            <button class="btn-dl-csv" data-id="${session.id}">⬇ CSV</button>
+            <button class="btn-dl-csv" data-id="${session.id}">⬇️ CSV</button>
         `;
         elements.historyList.appendChild(div);
     });
@@ -752,11 +773,11 @@ elements.mediaInput.addEventListener('change', () => {
     if (elements.mediaInput.files.length > 0) {
         const file = elements.mediaInput.files[0];
         elements.mediaNameDisplay.innerText = `📎 ${file.name}`;
-        elements.mediaNameDisplay.style.color = 'var(--primary)';
+        elements.mediaNameDisplay.className = 'file-text uploaded';
         elements.mediaBox.style.borderColor = 'var(--primary)';
     } else {
-        elements.mediaNameDisplay.innerText = 'Click to Upload Image/Video';
-        elements.mediaNameDisplay.style.color = 'var(--text-muted)';
-        elements.mediaBox.style.borderColor = '#404040';
+        elements.mediaNameDisplay.innerText = 'Click to attach image, video, or document';
+        elements.mediaNameDisplay.className = 'file-text';
+        elements.mediaBox.style.borderColor = 'var(--border)';
     }
 });

@@ -8,287 +8,849 @@
         :root {
             /* MODERN JET BLACK THEME */
             --bg-dark: #0a0a0a;
-            --bg-card: #171717;
-            --bg-input: #000000;
-            --text-main: #ededed;
-            --text-muted: #a3a3a3;
-            --primary: #25D366; /* WhatsApp Green */
-            --primary-hover: #128C7E;
+            --bg-card: #141414;
+            --bg-card-hover: #1a1a1a;
+            --bg-input: #0d0d0d;
+            --text-main: #f5f5f5;
+            --text-muted: #737373;
+            --text-secondary: #a3a3a3;
+            --primary: #25D366;
+            --primary-hover: #1ebe5a;
+            --primary-glow: rgba(37, 211, 102, 0.15);
             --accent: #3b82f6;
-            --border: #333333;
+            --border: #262626;
+            --border-hover: #404040;
             --danger: #ef4444;
+            --danger-glow: rgba(239, 68, 68, 0.15);
+            --warning: #f59e0b;
+            --success: #10b981;
+            --gradient-primary: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.25s ease;
         }
 
         /* RESET & SCROLLBAR */
-        * { box-sizing: border-box; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: var(--bg-dark); }
-        ::-webkit-scrollbar-thumb { background: #404040; border-radius: 2px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
 
         /* BODY */
         body {
-            width: 380px; min-height: 600px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            width: 400px;
+            min-height: 600px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
             background: var(--bg-dark);
             color: var(--text-main);
-            margin: 0; padding: 0;
             overflow-x: hidden;
             font-size: 14px;
-            letter-spacing: -0.01em;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
 
         /* HEADER */
         .header {
-            background: rgba(10, 10, 10, 0.95);
-            backdrop-filter: blur(12px);
-            padding: 16px 20px;
-            display: flex; justify-content: space-between; align-items: center;
+            background: linear-gradient(180deg, rgba(20, 20, 20, 0.98) 0%, rgba(10, 10, 10, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             border-bottom: 1px solid var(--border);
-            position: sticky; top: 0; z-index: 100;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
+
         .logo {
-            font-size: 16px; font-weight: 700; color: var(--text-main);
-            display: flex; align-items: center; gap: 8px;
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.3px;
         }
-        .logo::before {
-            content: ''; display: block; width: 10px; height: 10px;
-            background: var(--primary); border-radius: 50%;
-            box-shadow: 0 0 10px var(--primary);
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--gradient-primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
         }
+
         .version {
-            font-size: 10px; color: var(--text-muted);
-            background: #262626; padding: 2px 8px; border-radius: 12px; border: 1px solid #333;
+            font-size: 10px;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            font-weight: 500;
         }
 
         /* TABS */
         .tabs {
-            display: flex; background: var(--bg-card); padding: 4px; margin: 16px;
-            border-radius: 12px; border: 1px solid var(--border);
+            display: flex;
+            background: var(--bg-card);
+            padding: 6px;
+            margin: 16px 16px 0;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            gap: 4px;
         }
+
         .tab {
-            flex: 1; text-align: center; padding: 10px; font-size: 13px; font-weight: 500;
-            cursor: pointer; color: var(--text-muted); border-radius: 8px; transition: all 0.2s ease;
+            flex: 1;
+            text-align: center;
+            padding: 12px 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--text-muted);
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
         }
-        .tab:hover { color: var(--text-main); }
+
+        .tab::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--primary);
+            opacity: 0;
+            transition: opacity var(--transition-normal);
+        }
+
+        .tab:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
         .tab.active {
-            background: #262626; color: var(--primary);
-            font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            background: rgba(37, 211, 102, 0.1);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 2px;
+            background: var(--primary);
+            border-radius: 2px;
         }
 
         /* CONTENT */
-        .content-section { display: none; padding: 0 16px 20px 16px; animation: fadeIn 0.4s ease; }
-        .content-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .content-section {
+            display: none;
+            padding: 16px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         /* CARDS */
         .card {
-            background: var(--bg-card); border-radius: 14px; padding: 16px;
-            margin-bottom: 16px; border: 1px solid var(--border);
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
         }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        }
+
+        .card:hover {
+            border-color: var(--border-hover);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
         .label {
-            font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted);
-            font-weight: 600; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-badge {
+            width: 22px;
+            height: 22px;
+            background: var(--gradient-primary);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #000;
         }
 
         /* INPUTS */
         textarea, input[type="text"], input[type="number"], select {
-            width: 100%; background: var(--bg-input); border: 1px solid var(--border);
-            border-radius: 8px; color: var(--text-main); padding: 12px; font-family: inherit;
-            font-size: 13px; transition: all 0.2s; outline: none;
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-main);
+            padding: 14px 16px;
+            font-family: inherit;
+            font-size: 13px;
+            transition: all var(--transition-fast);
+            outline: none;
         }
-        textarea:focus, input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37, 211, 102, 0.1); }
 
-        textarea { resize: vertical; min-height: 80px; }
+        textarea::placeholder, input::placeholder {
+            color: var(--text-muted);
+        }
+
+        textarea:focus, input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        textarea {
+            resize: none;
+            min-height: 90px;
+            line-height: 1.6;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23737373' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
 
         /* FILE BOX */
         .file-box {
-            border: 1px dashed #404040; border-radius: 10px; padding: 24px;
-            text-align: center; cursor: pointer; transition: all 0.2s;
-            background: #121212; margin-bottom: 12px;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-md);
+            padding: 28px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            background: rgba(255, 255, 255, 0.01);
+            margin-bottom: 14px;
+            position: relative;
+            overflow: hidden;
         }
-        .file-box:hover { border-color: var(--primary); background: rgba(37, 211, 102, 0.03); }
-        .file-icon { font-size: 24px; margin-bottom: 8px; display: block; opacity: 0.7; }
-        .file-text { font-size: 13px; color: var(--text-muted); pointer-events: none; }
+
+        .file-box::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--primary-glow);
+            opacity: 0;
+            transition: opacity var(--transition-normal);
+        }
+
+        .file-box:hover {
+            border-color: var(--primary);
+            background: rgba(37, 211, 102, 0.03);
+        }
+
+        .file-box:hover::before {
+            opacity: 1;
+        }
+
+        .file-box:hover .file-icon {
+            transform: scale(1.1);
+        }
+
+        .file-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: block;
+            transition: transform var(--transition-normal);
+        }
+
+        .file-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            pointer-events: none;
+            position: relative;
+        }
+
+        .file-text.uploaded {
+            color: var(--primary);
+            font-weight: 500;
+        }
 
         /* BUTTONS */
         .btn-main {
-            width: 100%; background: var(--primary);
-            border: none; padding: 14px; color: #000; font-weight: 700; border-radius: 10px;
-            cursor: pointer; font-size: 14px; letter-spacing: 0.5px;
-            transition: transform 0.1s, filter 0.2s;
+            width: 100%;
+            background: var(--gradient-primary);
+            border: none;
+            padding: 16px;
+            color: #000;
+            font-weight: 700;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(37, 211, 102, 0.25);
         }
-        .btn-main:active { transform: scale(0.98); }
-        .btn-main:hover { filter: brightness(1.1); }
+
+        .btn-main::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+
+        .btn-main:hover::before {
+            opacity: 1;
+        }
+
+        .btn-main:active {
+            transform: scale(0.98);
+        }
+
+        .btn-main:hover {
+            box-shadow: 0 6px 24px rgba(37, 211, 102, 0.35);
+            transform: translateY(-1px);
+        }
 
         .btn-danger {
-            background: #262626; color: var(--danger); border: 1px solid var(--danger);
+            background: transparent;
+            color: var(--danger);
+            border: 2px solid var(--danger);
             margin-top: 12px;
+            box-shadow: none;
         }
-        .btn-danger:hover { background: var(--danger); color: white; }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.25);
+        }
 
         .btn-secondary {
-            background: #262626; color: var(--text-main); border: 1px solid var(--border);
-            padding: 10px; width: 100%; border-radius: 8px; cursor: pointer; font-size: 13px;
-            margin-bottom: 12px; font-weight: 500; transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            width: 100%;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 13px;
+            margin-bottom: 14px;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        .btn-secondary:hover { background: #333; }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: var(--border-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary:active {
+            transform: translateY(0);
+        }
 
         /* TOOLBAR */
         .toolbar {
-            display: flex; gap: 4px; margin-bottom: 10px; background: #000;
-            padding: 4px; border-radius: 8px; border: 1px solid var(--border);
+            display: flex;
+            gap: 4px;
+            margin-bottom: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 6px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            position: relative;
         }
+
         .tool-btn {
-            flex: 1; background: transparent; border: none; color: var(--text-muted);
-            height: 30px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: 0.2s;
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            height: 34px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .tool-btn:hover { background: #262626; color: var(--text-main); }
-        .template-row { display: flex; gap: 8px; margin-bottom: 12px; }
+
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+        }
+
+        .tool-btn.active-tool {
+            background: var(--primary);
+            color: #000;
+        }
+
+        .template-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .template-row select {
+            flex: 1;
+        }
+
         .icon-btn {
-            background: #262626; border: 1px solid var(--border); color: var(--text-muted); width: 36px;
-            border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: 0.2s;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            width: 44px;
+            min-width: 44px;
+            height: 44px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+            font-size: 16px;
         }
-        .icon-btn:hover { background: #333; color: var(--text-main); border-color: #555; }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            border-color: var(--border-hover);
+            transform: translateY(-1px);
+        }
 
         /* EDITOR */
         .editor-box {
-            min-height: 100px; max-height: 150px; overflow-y: auto; background: var(--bg-input);
-            border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 14px;
-            outline: none; line-height: 1.6; white-space: pre-wrap; color: var(--text-main);
+            min-height: 110px;
+            max-height: 160px;
+            overflow-y: auto;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            font-size: 14px;
+            outline: none;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            color: var(--text-main);
+            transition: all var(--transition-fast);
         }
-        .editor-box:focus { border-color: var(--primary); }
 
-        /* SETTINGS & HISTORY */
-        .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 13px; color: var(--text-muted); }
-        .setting-row input { width: 70px; text-align: center; padding: 8px; }
+        .editor-box:empty::before {
+            content: 'Type message here... Spintax {Hi|Hello} supported.';
+            color: var(--text-muted);
+        }
 
+        .editor-box:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        /* SETTINGS */
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setting-row:last-of-type {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            font-size: 14px;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .setting-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .setting-row input[type="number"] {
+            width: 80px;
+            text-align: center;
+            padding: 10px;
+        }
+
+        /* HISTORY */
         .history-item {
-            background: #262626; padding: 12px; margin-bottom: 8px; border-radius: 8px;
-            font-size: 13px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.02);
+            padding: 16px;
+            margin-bottom: 10px;
+            border-radius: var(--radius-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border);
+            transition: all var(--transition-fast);
         }
-        .history-item:hover { border-color: #555; }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: var(--border-hover);
+        }
+
+        .history-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .history-date {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-main);
+        }
+
+        .history-stats {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 12px;
+        }
+
+        .history-stats .sent {
+            color: var(--success);
+        }
 
         /* UTILS */
-        .link-text { color: var(--primary); text-decoration: none; font-size: 11px; cursor: pointer; font-weight: 600; opacity: 0.8; }
-        .link-text:hover { opacity: 1; }
+        .link-text {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: 600;
+            opacity: 0.9;
+            transition: opacity var(--transition-fast);
+        }
+
+        .link-text:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
 
         #emoji-picker {
-            display: none; position: absolute; bottom: 45px; right: 0;
-            width: 240px; height: 180px; background: var(--bg-card); border: 1px solid var(--border);
-            border-radius: 12px; padding: 8px; overflow-y: auto;
-            grid-template-columns: repeat(6, 1fr); gap: 4px; z-index: 50;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+            position: absolute;
+            bottom: 50px;
+            right: 0;
+            width: 260px;
+            height: 200px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 10px;
+            overflow-y: auto;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            z-index: 50;
+            box-shadow: var(--shadow-lg);
         }
 
-        .emoji-item { cursor: pointer; padding: 6px; font-size: 18px; text-align: center; border-radius: 4px; }
-        .emoji-item:hover { background: #333; }
+        .emoji-item {
+            cursor: pointer;
+            padding: 6px;
+            font-size: 18px;
+            text-align: center;
+            border-radius: 6px;
+            transition: all var(--transition-fast);
+        }
+
+        .emoji-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.15);
+        }
 
         .btn-dl-csv {
-             background: transparent; border: 1px solid var(--border); color: var(--primary);
-             padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 11px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--primary);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all var(--transition-fast);
         }
-        .btn-dl-csv:hover { background: var(--primary); color: #000; font-weight: bold; }
+
+        .btn-dl-csv:hover {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        /* STATS ROW */
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .stats-row span {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .clean-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all var(--transition-fast);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .clean-btn:hover {
+            background: var(--primary-glow);
+        }
+
+        /* FOOTER NOTE */
+        .footer-note {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 14px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: var(--radius-sm);
+            border: 1px dashed var(--border);
+            text-align: center;
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 13px;
+        }
+
+        /* PULSE ANIMATION */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo">WA AutoConnect</div>
-        <div class="version">v.1.0 Beta</div>
+        <div class="logo">
+            <div class="logo-icon">📱</div>
+            WA AutoConnect
+        </div>
+        <div class="version">v2.0</div>
     </div>
 
     <div class="tabs">
         <div class="tab active" data-tab="tab-compose">📢 Compose</div>
         <div class="tab" data-tab="tab-settings">⚙️ Settings</div>
-        <div class="tab" data-tab="tab-history">📜 History</div>
+        <div class="tab" data-tab="tab-history">📊 History</div>
     </div>
 
     <div id="tab-compose" class="content-section active">
         <div class="card">
-            <span class="label">
-                Step 1: Add Numbers
-                <a id="downloadTemplate" class="link-text">⬇ CSV Template</a>
-            </span>
-            <button id="extractBtn" class="btn-secondary">📥 Grab Group Members</button>
+            <div class="card-header">
+                <span class="label">
+                    <span class="step-badge">1</span>
+                    Add Numbers
+                </span>
+                <a id="downloadTemplate" class="link-text">⬇️ CSV Template</a>
+            </div>
+
+            <button id="extractBtn" class="btn-secondary">
+                <span>📥</span> Extract Group Members
+            </button>
 
             <div class="file-box" id="upload-box">
                 <span class="file-icon">📂</span>
-                <span class="file-text" id="file-name">Click to Upload CSV / Excel</span>
+                <span class="file-text" id="file-name">Click or drag to upload CSV / Excel</span>
             </div>
             <input type="file" id="csvFile" accept=".csv, .txt, .xlsx" style="display: none;">
 
-                                    <textarea id="manual-numbers" placeholder="Paste numbers here...
-Ex: 919876543210
-(Use Country Code without +)"></textarea>
+            <textarea id="manual-numbers" placeholder="Or paste numbers directly...&#10;Example: 919876543210&#10;(Use country code without +)"></textarea>
 
-            <div style="display:flex; justify-content:space-between; margin-top:10px;">
-                <button id="btn-clean-numbers" style="background:none; border:none; color:var(--primary); cursor:pointer; font-size:11px;">✨ Clean & Filter</button>
-                <span id="total-contacts-display" style="font-size:11px; color:var(--text-muted);">Total: 0</span>
+            <div class="stats-row">
+                <button id="btn-clean-numbers" class="clean-btn">
+                    ✨ Clean & Filter
+                </button>
+                <span id="total-contacts-display">Total: 0 contacts</span>
             </div>
         </div>
 
         <div class="card">
-            <span class="label">Step 2: Message</span>
+            <div class="card-header">
+                <span class="label">
+                    <span class="step-badge">2</span>
+                    Compose Message
+                </span>
+            </div>
 
             <div class="template-row">
-                <select id="templateSelect"><option value="">📂 Load Template...</option></select>
-                <button class="icon-btn" id="btnSaveTemp" title="Save">💾</button>
-                <button class="icon-btn" id="btnDelTemp" title="Delete">🗑️</button>
+                <select id="templateSelect">
+                    <option value="">📂 Load saved template...</option>
+                </select>
+                <button class="icon-btn" id="btnSaveTemp" title="Save Template">💾</button>
+                <button class="icon-btn" id="btnDelTemp" title="Delete Template">🗑️</button>
             </div>
 
             <div class="toolbar" style="position: relative;">
                 <button class="tool-btn" id="btn-bold" title="Bold"><b>B</b></button>
                 <button class="tool-btn" id="btn-italic" title="Italic"><i>I</i></button>
-                <button class="tool-btn" id="btn-strike" title="Strike"><s>S</s></button>
-                <button class="tool-btn" id="btn-add-name" title="Add Name Variable">{name}</button>
+                <button class="tool-btn" id="btn-strike" title="Strikethrough"><s>S</s></button>
+                <button class="tool-btn" id="btn-add-name" title="Insert Name Variable">{name}</button>
                 <button class="tool-btn" id="btn-emoji" title="Insert Emoji">😊</button>
-
                 <div id="emoji-picker"></div>
             </div>
 
-            <div id="message-editor" class="editor-box" contenteditable="true" placeholder="Type message here... Spintax {Hi|Hello} supported."></div>
+            <div id="message-editor" class="editor-box" contenteditable="true"></div>
         </div>
 
         <div class="card">
-            <span class="label">Step 3: Attachment</span>
+            <div class="card-header">
+                <span class="label">
+                    <span class="step-badge">3</span>
+                    Attachment (Optional)
+                </span>
+            </div>
             <div class="file-box" id="media-upload-box">
-                <span class="file-icon">📷</span>
-                <span class="file-text" id="media-file-name">Click to Upload Image/Video</span>
+                <span class="file-icon">🖼️</span>
+                <span class="file-text" id="media-file-name">Click to attach image, video, or document</span>
             </div>
             <input type="file" id="media-file" style="display: none;">
         </div>
 
         <button id="start-btn" class="btn-main">🚀 START CAMPAIGN</button>
-        <button id="reset-btn" class="btn-main btn-danger">⏹️ STOP</button>
+        <button id="reset-btn" class="btn-main btn-danger">⏹️ STOP & RESET</button>
     </div>
 
     <div id="tab-settings" class="content-section">
         <div class="card">
-            <span class="label">Time Delay (Seconds)</span>
-            <div class="setting-row">
-                <span>Min Delay:</span>
-                <input type="number" id="min-gap" value="5">
+            <div class="card-header">
+                <span class="label">⏱️ Message Delay</span>
             </div>
+
             <div class="setting-row">
-                <span>Max Delay:</span>
-                <input type="number" id="max-gap" value="10">
+                <div>
+                    <div class="setting-label">Minimum Delay</div>
+                    <div class="setting-desc">Shortest wait between messages</div>
+                </div>
+                <input type="number" id="min-gap" value="5" min="1" max="300">
             </div>
-            <p style="font-size:10px; color:var(--text-muted); margin-top:10px;">Time settings are saved automatically.</p>
+
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Maximum Delay</div>
+                    <div class="setting-desc">Longest wait between messages</div>
+                </div>
+                <input type="number" id="max-gap" value="10" min="1" max="300">
+            </div>
+
+            <div class="footer-note">
+                💡 Random delay between min/max helps avoid detection. Settings auto-save.
+            </div>
         </div>
     </div>
 
     <div id="tab-history" class="content-section">
         <div class="card">
-             <span class="label">Recent Broadcasts <button id="refresh-history" style="background:none; border:none; color:var(--primary); cursor:pointer; float:right;">↻</button></span>
-             <div id="history-list" style="margin-top:10px; color:var(--text-muted); font-size:11px;">Loading...</div>
+            <div class="card-header">
+                <span class="label">📊 Recent Campaigns</span>
+                <button id="refresh-history" class="link-text">↻ Refresh</button>
+            </div>
+            <div id="history-list">
+                <div class="empty-state loading">
+                    <div class="empty-state-icon">📋</div>
+                    <div class="empty-state-text">Loading history...</div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script src="popup.js"></script>
 </body>
 </html>
-
-
-
-
