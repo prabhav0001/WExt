@@ -1,6 +1,18 @@
 // popup.js - Refactored Version
 
 // ============================================
+// CONFIGURATION
+// ============================================
+const CONFIG = {
+    LIMITS: {
+        minPhoneLength: 10,
+        minGapValue: 1,
+        maxGapValue: 300,
+        maxHistoryItems: 50,
+    },
+};
+
+// ============================================
 // CONSTANTS
 // ============================================
 const EMOJIS = [
@@ -67,14 +79,30 @@ const elements = {
 // UTILITY FUNCTIONS
 // ============================================
 const utils = {
+    /**
+     * Removes all non-numeric characters from a phone number
+     * @param {string} number - Raw phone number string
+     * @returns {string} Cleaned numeric string
+     */
     cleanNumber(number) {
         return number.replace(/[^0-9]/g, '');
     },
 
+    /**
+     * Validates if a phone number has minimum required length
+     * @param {string} number - Cleaned phone number
+     * @returns {boolean} True if valid
+     */
     isValidNumber(number) {
-        return number.length >= 10;
+        return number.length >= CONFIG.LIMITS.minPhoneLength;
     },
 
+    /**
+     * Downloads content as a file
+     * @param {string} content - File content
+     * @param {string} filename - Download filename
+     * @param {string} type - MIME type (default: text/csv)
+     */
     downloadFile(content, filename, type = 'text/csv') {
         const blob = new Blob([content], { type });
         const url = URL.createObjectURL(blob);
@@ -87,6 +115,11 @@ const utils = {
         URL.revokeObjectURL(url);
     },
 
+    /**
+     * Reads file content as text
+     * @param {File} file - File object to read
+     * @returns {Promise<string>} File contents
+     */
     async readFile(file) {
         return file.text();
     },
@@ -96,16 +129,53 @@ const utils = {
 // STORAGE HELPERS
 // ============================================
 const storage = {
+    /**
+     * Gets values from chrome.storage.local
+     * @param {string[]} keys - Keys to retrieve
+     * @returns {Promise<Object>} Storage data
+     */
     get(keys) {
-        return new Promise(resolve => chrome.storage.local.get(keys, resolve));
+        return new Promise((resolve, reject) => {
+            chrome.storage.local.get(keys, (result) => {
+                if (chrome.runtime.lastError) {
+                    console.error('Storage get error:', chrome.runtime.lastError);
+                    resolve({}); // Return empty on error to prevent crashes
+                } else {
+                    resolve(result);
+                }
+            });
+        });
     },
 
+    /**
+     * Sets values in chrome.storage.local
+     * @param {Object} data - Key-value pairs to store
+     * @returns {Promise<void>}
+     */
     set(data) {
-        return new Promise(resolve => chrome.storage.local.set(data, resolve));
+        return new Promise((resolve, reject) => {
+            chrome.storage.local.set(data, () => {
+                if (chrome.runtime.lastError) {
+                    console.error('Storage set error:', chrome.runtime.lastError);
+                }
+                resolve();
+            });
+        });
     },
 
+    /**
+     * Clears all chrome.storage.local data
+     * @returns {Promise<void>}
+     */
     clear() {
-        return new Promise(resolve => chrome.storage.local.clear(resolve));
+        return new Promise((resolve) => {
+            chrome.storage.local.clear(() => {
+                if (chrome.runtime.lastError) {
+                    console.error('Storage clear error:', chrome.runtime.lastError);
+                }
+                resolve();
+            });
+        });
     },
 };
 
@@ -128,10 +198,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ============================================
 // SETTINGS HANDLERS
 // ============================================
+
+/**
+ * Creates a change handler for gap inputs with validation
+ * @param {string} key - Storage key for the gap value
+ * @returns {Function} Event handler function
+ */
 function handleGapChange(key) {
     return (e) => {
         let val = parseInt(e.target.value);
-        if (val < 1) val = 1;
+        if (isNaN(val) || val < CONFIG.LIMITS.minGapValue) {
+            val = CONFIG.LIMITS.minGapValue;
+        } else if (val > CONFIG.LIMITS.maxGapValue) {
+            val = CONFIG.LIMITS.maxGapValue;
+        }
+        e.target.value = val;
         storage.set({ [key]: val });
     };
 }
@@ -154,8 +235,49 @@ document.querySelectorAll('.tab').forEach(tab => {
 // ============================================
 // EDITOR & TOOLBAR
 // ============================================
+
+/**
+ * Applies text formatting using modern APIs instead of deprecated execCommand
+ * @param {string} command - Formatting command: 'bold', 'italic', 'strikethrough'
+ */
 function applyFormat(command) {
-    document.execCommand(command);
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+    if (!selectedText) return;
+
+    const wrapperMap = {
+        bold: { tag: 'b' },
+        italic: { tag: 'i' },
+        strikethrough: { tag: 's' },
+    };
+
+    const wrapper = wrapperMap[command];
+    if (!wrapper) return;
+
+    // Check if already wrapped
+    const parent = range.commonAncestorContainer.parentElement;
+    if (parent?.tagName?.toLowerCase() === wrapper.tag) {
+        // Unwrap
+        const textNode = document.createTextNode(parent.textContent);
+        parent.parentNode.replaceChild(textNode, parent);
+    } else {
+        // Wrap selection
+        const el = document.createElement(wrapper.tag);
+        el.textContent = selectedText;
+        range.deleteContents();
+        range.insertNode(el);
+
+        // Move cursor after the element
+        const newRange = document.createRange();
+        newRange.setStartAfter(el);
+        newRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+    }
+
     elements.msgBox.focus();
     updateToolbar();
 }
@@ -165,15 +287,28 @@ elements.btnItalic.addEventListener('click', () => applyFormat('italic'));
 elements.btnStrike.addEventListener('click', () => applyFormat('strikethrough'));
 elements.btnAddName.addEventListener('click', () => insertTextAtCursor(' {name} '));
 
+/**
+ * Updates toolbar button states based on current selection
+ */
 function updateToolbar() {
-    const commands = [
-        { btn: elements.btnBold, cmd: 'bold' },
-        { btn: elements.btnItalic, cmd: 'italic' },
-        { btn: elements.btnStrike, cmd: 'strikethrough' },
-    ];
-    commands.forEach(({ btn, cmd }) => {
-        btn.classList.toggle('active-tool', document.queryCommandState(cmd));
-    });
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+
+    const node = selection.anchorNode?.parentElement;
+    if (!node) return;
+
+    const isWrappedIn = (tagName) => {
+        let current = node;
+        while (current && current !== elements.msgBox) {
+            if (current.tagName?.toLowerCase() === tagName) return true;
+            current = current.parentElement;
+        }
+        return false;
+    };
+
+    elements.btnBold.classList.toggle('active-tool', isWrappedIn('b') || isWrappedIn('strong'));
+    elements.btnItalic.classList.toggle('active-tool', isWrappedIn('i') || isWrappedIn('em'));
+    elements.btnStrike.classList.toggle('active-tool', isWrappedIn('s') || isWrappedIn('strike'));
 }
 
 elements.msgBox.addEventListener('keyup', updateToolbar);
@@ -364,10 +499,12 @@ elements.csvInput.addEventListener('change', async () => {
     try {
         const text = await utils.readFile(file);
         const lines = text.split('\n');
-        const count = lines.filter(l => l.trim().length > 5).length;
+        const count = lines.filter(l => l.trim().length > CONFIG.LIMITS.minPhoneLength - 5).length;
         elements.statsDisplay.innerText = `File Loaded: ${count} Lines`;
     } catch (e) {
-        alert('Error reading file');
+        console.error('File read error:', e);
+        elements.statsDisplay.innerText = 'Error reading file';
+        elements.fileNameDisplay.style.color = '#ef4444';
     }
 });
 
@@ -485,7 +622,7 @@ elements.startBtn.addEventListener('click', async () => {
     };
 
     history.unshift(newSession);
-    if (history.length > 50) history = history.slice(0, 50);
+    if (history.length > CONFIG.LIMITS.maxHistoryItems) history = history.slice(0, CONFIG.LIMITS.maxHistoryItems);
 
     const storagePayload = {
         [STORAGE_KEYS.history]: history,
@@ -591,7 +728,7 @@ async function loadHistory() {
 
 async function downloadSessionCSV(id) {
     const data = await storage.get([STORAGE_KEYS.history]);
-    const session = data[STORAGE_KEYS.history].find(x => x.id == id);
+    const session = data[STORAGE_KEYS.history].find(x => x.id === Number(id));
 
     if (!session) return;
 

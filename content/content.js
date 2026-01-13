@@ -27,6 +27,10 @@ const CONFIG = {
         maxInputAttempts: 60,
         maxSendAttempts: 180,
         navTimeout: 15000,
+        minPhoneLength: 10,
+        maxPhoneLength: 15,
+        activityPingInterval: 5,
+        errorPopupClickDelay: 300,
     },
     STYLES: {
         dashboard: `position:fixed;top:15px;right:15px;z-index:99999;background:#0f172a;padding:0;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.6);font-family:'Segoe UI',sans-serif;width:280px;overflow:hidden;border:1px solid #334155;color:#e2e8f0;backdrop-filter:blur(10px);`,
@@ -51,6 +55,7 @@ const state = {
     isHandlingError: false,
     lastNavigationTime: 0,
     shieldInterval: null,
+    audioContext: null,
 };
 
 // ============================================
@@ -113,30 +118,66 @@ function smartTimeout(callback, delay) {
 // STORAGE HELPERS
 // ============================================
 const storage = {
+    /**
+     * Gets values from chrome.storage.local
+     * @param {string[]} keys - Keys to retrieve
+     * @returns {Promise<Object>} Storage data
+     */
     get(keys) {
-        return new Promise(resolve => chrome.storage.local.get(keys, resolve));
+        return new Promise((resolve) => {
+            chrome.storage.local.get(keys, (result) => {
+                if (chrome.runtime.lastError) {
+                    console.error('Storage get error:', chrome.runtime.lastError);
+                    resolve({});
+                } else {
+                    resolve(result);
+                }
+            });
+        });
     },
 
+    /**
+     * Sets values in chrome.storage.local
+     * @param {Object} data - Key-value pairs to store
+     * @returns {Promise<void>}
+     */
     set(data) {
-        return new Promise(resolve => chrome.storage.local.set(data, resolve));
+        return new Promise((resolve) => {
+            chrome.storage.local.set(data, () => {
+                if (chrome.runtime.lastError) {
+                    console.error('Storage set error:', chrome.runtime.lastError);
+                }
+                resolve();
+            });
+        });
     },
 
+    /**
+     * Logs the status of a message send attempt to history
+     * @param {string} name - Contact name
+     * @param {string} number - Contact phone number
+     * @param {string} status - Status message (e.g., 'Sent ✅', 'Failed')
+     */
     async logStatus(name, number, status) {
         if (state.isStopped) return;
 
-        const data = await this.get(['broadcastHistory', 'currentSessionId']);
-        const history = data.broadcastHistory || [];
-        const sessionIndex = history.findIndex(s => s.id == data.currentSessionId);
+        try {
+            const data = await this.get(['broadcastHistory', 'currentSessionId']);
+            const history = data.broadcastHistory || [];
+            const sessionIndex = history.findIndex(s => s.id === data.currentSessionId);
 
-        if (sessionIndex !== -1) {
-            history[sessionIndex].logs.push({
-                name,
-                number,
-                status,
-                time: new Date().toLocaleTimeString(),
-            });
-            await this.set({ broadcastHistory: history });
-            if (!state.isStopped) updateDashboard('Log Saved', 'grey', true);
+            if (sessionIndex !== -1) {
+                history[sessionIndex].logs.push({
+                    name,
+                    number,
+                    status,
+                    time: new Date().toLocaleTimeString(),
+                });
+                await this.set({ broadcastHistory: history });
+                if (!state.isStopped) updateDashboard('Log Saved', 'grey', true);
+            }
+        } catch (e) {
+            console.error('logStatus error:', e);
         }
     },
 };
@@ -166,15 +207,17 @@ const shield = {
 
         // Silent audio to prevent tab suspension
         try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (AudioContext) {
-                const audioCtx = new AudioContext();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                gainNode.gain.value = 0.0001;
-                oscillator.start();
+            if (!state.audioContext) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    state.audioContext = new AudioContextClass();
+                    const oscillator = state.audioContext.createOscillator();
+                    const gainNode = state.audioContext.createGain();
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    gainNode.gain.value = 0.0001;
+                    oscillator.start();
+                }
             }
         } catch (e) { /* Ignore audio errors */ }
 
@@ -224,7 +267,14 @@ const shield = {
     },
 
     stop() {
-        if (state.shieldInterval) clearInterval(state.shieldInterval);
+        if (state.shieldInterval) {
+            clearInterval(state.shieldInterval);
+            state.shieldInterval = null;
+        }
+        if (state.audioContext) {
+            state.audioContext.close().catch(() => {});
+            state.audioContext = null;
+        }
         if (document.pictureInPictureElement) {
             document.exitPictureInPicture().catch(() => {});
         }
@@ -266,6 +316,72 @@ const overlay = {
 };
 
 // ============================================
+// TOAST NOTIFICATION SYSTEM
+// ============================================
+const toast = {
+    /**
+     * Shows a non-blocking toast notification
+     * @param {string} message - Message to display
+     * @param {string} type - 'success' | 'error' | 'info' | 'warning'
+     * @param {number} duration - Duration in ms (default 3000)
+     */
+    show(message, type = 'info', duration = 3000) {
+        const existing = utils.$('#wa-toast');
+        if (existing) existing.remove();
+
+        const colors = {
+            success: { bg: '#059669', border: '#34d399' },
+            error: { bg: '#dc2626', border: '#ef4444' },
+            warning: { bg: '#d97706', border: '#f59e0b' },
+            info: { bg: '#2563eb', border: '#3b82f6' },
+        };
+        const color = colors[type] || colors.info;
+
+        const el = document.createElement('div');
+        el.id = 'wa-toast';
+        el.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: ${color.bg};
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 999999;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border: 1px solid ${color.border};
+            animation: toastSlide 0.3s ease;
+        `;
+        el.textContent = message;
+
+        // Add animation keyframes if not exists
+        if (!utils.$('#toast-style')) {
+            const style = document.createElement('style');
+            style.id = 'toast-style';
+            style.textContent = `
+                @keyframes toastSlide {
+                    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+                    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), duration);
+    },
+
+    success(msg) { this.show(msg, 'success'); },
+    error(msg) { this.show(msg, 'error'); },
+    warning(msg) { this.show(msg, 'warning'); },
+    info(msg) { this.show(msg, 'info'); },
+};
+
+// ============================================
 // DASHBOARD UI
 // ============================================
 function updateDashboard(statusText, statusColor, forceShow = false) {
@@ -280,7 +396,7 @@ function updateDashboard(statusText, statusColor, forceShow = false) {
         }
 
         const history = data.broadcastHistory || [];
-        const session = history.find(s => s.id == data.currentSessionId);
+        const session = history.find(s => s.id === data.currentSessionId);
         const remaining = data.pendingData?.length || 0;
         const total = session?.total || 0;
         const sent = session?.logs.filter(l => l.status.includes('Sent')).length || 0;
@@ -425,7 +541,7 @@ function checkForErrorPopup(user, data) {
 
     if (popupBtn) {
         popupBtn.click();
-        setTimeout(() => popupBtn.click(), 300);
+        setTimeout(() => popupBtn.click(), CONFIG.LIMITS.errorPopupClickDelay);
     }
 
     window.history.pushState({}, null, 'https://web.whatsapp.com/');
@@ -532,27 +648,34 @@ window.addEventListener('load', () => {
     });
 });
 
-chrome.runtime.onMessage.addListener((request) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'initiate') {
         state.isPaused = false;
         state.isStopped = false;
         updateDashboard('Initializing...', 'blue', true);
         startProcess();
+        sendResponse({ status: 'started' });
     }
 
     if (request.action === 'extractGroup') {
         extractGroupMembers();
+        sendResponse({ status: 'extracting' });
     }
+
+    return true; // Required for async response
 });
 
 // ============================================
 // GROUP EXTRACTION
 // ============================================
+/**
+ * Extracts phone numbers from a WhatsApp group
+ */
 function extractGroupMembers() {
     try {
         const headerBar = utils.$(CONFIG.SELECTORS.chatHeader);
         if (!headerBar) {
-            alert('Please open a Group Chat first!');
+            toast.error('Please open a Group Chat first!');
             return;
         }
 
@@ -565,7 +688,7 @@ function extractGroupMembers() {
 
             const uniqueNumbers = [...new Set(potentialNumbers)].filter(n => {
                 const clean = utils.cleanNumber(n);
-                return clean.length >= 10 && clean.length <= 15;
+                return clean.length >= CONFIG.LIMITS.minPhoneLength && clean.length <= CONFIG.LIMITS.maxPhoneLength;
             });
 
             const data = uniqueNumbers.map(n => ({
@@ -576,13 +699,17 @@ function extractGroupMembers() {
             chrome.runtime.sendMessage({ action: 'groupData', data });
         }, CONFIG.TIMEOUTS.groupExtract);
     } catch (e) {
-        alert('Error extracting.');
+        console.error('Group extraction error:', e);
+        toast.error('Error extracting group members');
     }
 }
 
 // ============================================
 // MAIN PROCESS
 // ============================================
+/**
+ * Main broadcast process entry point
+ */
 async function startProcess() {
     if (state.isPaused || state.isStopped) {
         if (state.isPaused) updateDashboard('Paused', 'orange', true);
@@ -592,38 +719,48 @@ async function startProcess() {
 
     state.scriptStartTime = Date.now();
 
-    const data = await storage.get(['pendingData', 'message', 'status', 'minGap', 'maxGap', 'imageData', 'fileType', 'fileName']);
+    try {
+        const data = await storage.get(['pendingData', 'message', 'status', 'minGap', 'maxGap', 'imageData', 'fileType', 'fileName']);
 
-    if (state.isStopped) return;
+        if (state.isStopped) return;
 
-    if (data.status !== 'active' || !data.pendingData?.length) {
-        shield.stop();
-        if (data.pendingData?.length === 0) storage.set({ status: 'complete' });
-        updateDashboard(null, null, true);
-        return;
-    }
+        if (data.status !== 'active' || !data.pendingData?.length) {
+            shield.stop();
+            if (data.pendingData?.length === 0) storage.set({ status: 'complete' });
+            updateDashboard(null, null, true);
+            return;
+        }
 
-    const user = data.pendingData[0];
-    if (checkForErrorPopup(user, data)) return;
+        const user = data.pendingData[0];
+        if (checkForErrorPopup(user, data)) return;
 
-    if (isOnCorrectChat(user.number)) {
-        showStatus(`Chat: ${user.name || 'User'}...`, 'orange');
-        await processCurrentChat(user, data);
-    } else {
-        showStatus('Navigating...', 'grey');
-        utils.navigateToChat(user.number);
+        if (isOnCorrectChat(user.number)) {
+            showStatus(`Chat: ${user.name || 'User'}...`, 'orange');
+            await processCurrentChat(user, data);
+        } else {
+            showStatus('Navigating...', 'grey');
+            utils.navigateToChat(user.number);
 
-        smartTimeout(() => {
-            if (state.isStopped) return;
-            if (isOnCorrectChat(user.number)) {
-                startProcess();
-            } else if (!state.isHandlingError && !checkForErrorPopup(user, data)) {
-                startProcess();
-            }
-        }, CONFIG.TIMEOUTS.navigation);
+            smartTimeout(() => {
+                if (state.isStopped) return;
+                if (isOnCorrectChat(user.number)) {
+                    startProcess();
+                } else if (!state.isHandlingError && !checkForErrorPopup(user, data)) {
+                    startProcess();
+                }
+            }, CONFIG.TIMEOUTS.navigation);
+        }
+    } catch (e) {
+        console.error('startProcess error:', e);
+        toast.error('Process error - check console');
     }
 }
 
+/**
+ * Processes the current chat by finding input box and sending message
+ * @param {Object} user - Current contact {name, number}
+ * @param {Object} data - Broadcast data from storage
+ */
 async function processCurrentChat(user, data) {
     let attempts = 0;
 
@@ -659,6 +796,13 @@ async function processCurrentChat(user, data) {
     checkLoop();
 }
 
+/**
+ * Sends a message with an attached file/image
+ * @param {HTMLElement} box - The message input element
+ * @param {Object} user - Current contact {name, number}
+ * @param {Object} data - Broadcast data from storage
+ * @param {string} message - Processed message text
+ */
 async function sendWithAttachment(box, user, data, message) {
     try {
         showStatus('Uploading...', 'purple');
@@ -669,6 +813,13 @@ async function sendWithAttachment(box, user, data, message) {
     }
 }
 
+/**
+ * Sends a text-only message without attachments
+ * @param {HTMLElement} box - The message input element
+ * @param {Object} user - Current contact {name, number}
+ * @param {Object} data - Broadcast data from storage
+ * @param {string} message - Processed message text
+ */
 async function sendTextOnly(box, user, data, message) {
     pasteText(box, message);
     showStatus('Hitting Enter...', 'blue');
@@ -692,6 +843,14 @@ async function sendTextOnly(box, user, data, message) {
 // ============================================
 // SEND BUTTON HANDLER
 // ============================================
+
+/**
+ * Waits for the send button to become visible and clicks it
+ * @param {Object} data - Broadcast data from storage
+ * @param {Object} currentUser - Current contact {name, number}
+ * @param {string|null} messageToWrite - Caption text for media, or null
+ * @param {HTMLElement} boxElement - The message input element
+ */
 function waitForSendButtonAndClick(data, currentUser, messageToWrite, boxElement) {
     let attempts = 0;
     showStatus('Waiting for Send Button...', 'blue');
@@ -744,10 +903,10 @@ function waitForSendButtonAndClick(data, currentUser, messageToWrite, boxElement
             storage.logStatus(currentUser.name, currentUser.number, 'Failed').then(() => nextNumber(data));
         } else {
             // Trigger activity to help WhatsApp detect input
-            if (attempts % 5 === 0 && boxElement) {
+            if (attempts % CONFIG.LIMITS.activityPingInterval === 0 && boxElement) {
                 boxElement.focus();
-                document.execCommand('insertText', false, ' ');
-                setTimeout(() => document.execCommand('delete'), 50);
+                boxElement.dispatchEvent(new InputEvent('beforeinput', { inputType: 'insertText', data: ' ', bubbles: true }));
+                setTimeout(() => boxElement.dispatchEvent(new InputEvent('beforeinput', { inputType: 'deleteContentBackward', bubbles: true })), 50);
             }
             smartTimeout(uploadLoop, 1000);
         }
@@ -759,6 +918,12 @@ function waitForSendButtonAndClick(data, currentUser, messageToWrite, boxElement
 // ============================================
 // NEXT CONTACT HANDLER
 // ============================================
+
+/**
+ * Moves to the next contact in the queue after a delay
+ * @param {Object} data - Broadcast data from storage
+ * @param {boolean} fastSkip - Whether to use minimal delay (for errors)
+ */
 function nextNumber(data, fastSkip = false) {
     if (state.isPaused || state.isStopped) {
         if (state.isPaused) updateDashboard('Paused', 'orange', true);
@@ -780,7 +945,7 @@ function nextNumber(data, fastSkip = false) {
                 shield.stop();
                 storage.set({ status: 'complete' });
                 updateDashboard(null, null, true);
-                setTimeout(() => alert('All Done!'), 500);
+                setTimeout(() => toast.success('All messages sent!'), 500);
             }
         });
     }, actualWait * 1000);
